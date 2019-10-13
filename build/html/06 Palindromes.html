@@ -1,0 +1,286 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Palindromes and Recursion-as-Evaluation &#8212; Understanding Recursion Using Python 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Recursion and Swapped Arguments" href="05 Swapped.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="05 Swapped.html" title="Recursion and Swapped Arguments"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Understanding Recursion Using Python 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="palindromes-and-recursion-as-evaluation">
+<span id="palindromes"></span><h1>Palindromes and Recursion-as-Evaluation<a class="headerlink" href="#palindromes-and-recursion-as-evaluation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="applying-recursion-to-strings">
+<h2>Applying recursion to strings<a class="headerlink" href="#applying-recursion-to-strings" title="Permalink to this headline">¶</a></h2>
+<p>Recursion can also be used to simply evaluate the truth of an argument that is passed to the recursive function. With the base cases for <code class="docutils literal notranslate"><span class="pre">summ()</span></code> and <code class="docutils literal notranslate"><span class="pre">factorial()</span></code>, we identified the simplest possible state of the problem, eg: the sum of all numbers from 1 to 1 is 1, and 1! == 1. When evaluating for truth, we restate our base case to answer the question: what is the most basic state of the problem that would return <code class="docutils literal notranslate"><span class="pre">True</span></code>? On the way to the base case, we evaluate ever-smaller subsets of the problem using recursive calls. As long as each call evaluates to <code class="docutils literal notranslate"><span class="pre">True</span></code>, we keep reaching for the base case. If we can get to the most basic solution of that problem and return <code class="docutils literal notranslate"><span class="pre">True</span></code> from the base case, this is thanks to the fact that every previous reduction of the problem has also been true.</p>
+<p>For example, consider the problem of palindromicity: if a string can be read both forwards and backwards, that string is said to be a palindrome. We might say that the simplest palindrome is a single letter, for example <code class="docutils literal notranslate"><span class="pre">a</span></code>, since <code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">==</span> <span class="pre">a</span></code> is certainly true. In general for humans, shorter words are quite easy to evaluate, such as <code class="docutils literal notranslate"><span class="pre">kayak</span></code>. As a foil, we could bring up Python’s <code class="docutils literal notranslate"><span class="pre">reversed()</span></code> method, which is effective for individual words but is quite slow, performance-wise.</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39;redder&#39;</span>  <span class="o">==</span>  <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="s1">&#39;redder&#39;</span><span class="p">)</span>
+<span class="s1">&#39;driver&#39;</span>  <span class="o">!=</span>  <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="s1">&#39;driver&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>However, entire phrases such as ‘Go hang a salami; I’m a lasagna hog’ may be more difficult to evaluate.</p>
+<p>So far we have been practicing recursion using numbers, which lend themselves quite well to operations like incrementing, decrementing, and hitting limits. It’s a bit of a shift to focus on strings, but Python treats letters much like numbers. String slicing and indexing is a great way to isolate subsequences or individual letters in a string, and is much faster than <code class="docutils literal notranslate"><span class="pre">reversed()</span></code> above. So let’s consider how these string methods could be used in a recursive solution.</p>
+<p>First we decide how to apply a reductive strategy to the matter of palindromes. This is a good example of recognizing that, when considering how to design the recursive case, what you are really asking is, “How can I restate the problem so that every time I recursively call the function, the problem is smaller, and eventually I am guaranteed to reach the base case?” You’re just doing it with strings and not numbers - the approach remains the same.</p>
+<p>For example, if our string is <code class="docutils literal notranslate"><span class="pre">racecar</span></code> we know that the first and last letters are the same, as are the second and second-to-last letters, etc, all the way until we get to the midpoint of the string. Since <code class="docutils literal notranslate"><span class="pre">e</span></code> is at the midpoint and we know that all single letters show palindromicity, we know that <code class="docutils literal notranslate"><span class="pre">e</span> <span class="pre">==</span> <span class="pre">e</span></code> and we’re done. This is going to be easy! Recalling string index positions:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>    0 1 2 3 4 5 6
+s = r a c e c a r
+</pre></div>
+</div>
+<p>Put another way,</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>s[0] == s[6] is the same as &#39;r&#39; == &#39;r&#39;
+s[1] == s[5] is the same as &#39;a&#39; == &#39;a&#39;
+s[2] == s[4] is the same as &#39;c&#39; == &#39;c&#39;
+s[3] == s[3] is the same as &#39;e&#39; == &#39;e&#39;
+</pre></div>
+</div>
+<p>We can re-write the above to take advantage of Python’s indexing: increasing negative numbers count downwards from the end of the string. This way we don’t care how long the string is, and we know that if we keep doing it for long enough we’ll get to the midpoint:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>s[0] == s[-1]
+s[1] == s[-2]
+s[2] == s[-3]
+s[3] == s[-4]
+</pre></div>
+</div>
+<p>Already, a glimpse of the recursive case is emerging. If we can just evaluate each pair in the sequence in order, we should be able to establish a word’s palindromicity. We can write out some pseudo-code to get started:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>Take the first and last letters of a string</li>
+<li>If they are equal proceed to the next pair of letters</li>
+<li>If they are not, return <code class="docutils literal notranslate"><span class="pre">False</span></code></li>
+<li>If there is only one letter left, return <code class="docutils literal notranslate"><span class="pre">True</span></code></li>
+</ol>
+</div></blockquote>
+<p>How can we represent this in code? Well, if <code class="docutils literal notranslate"><span class="pre">s[0]</span> <span class="pre">==</span> <span class="pre">s[-1]</span></code> then what’s left over? You may think that it is <code class="docutils literal notranslate"><span class="pre">s[1:-2]</span></code> but Python doesn’t count the character at index position <code class="docutils literal notranslate"><span class="pre">-2</span></code>, so in fact the portion of the substring still to be evaluated is <code class="docutils literal notranslate"><span class="pre">s[1:-1]</span></code>. Note that we are <em>not</em> altering the string in any way - the immutability of strings as a data type prevents that. Nor are we making a new copy of the string. We are just looking at a sub-section of the original string, and narrowing our view two characters at a time:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>1) s[0] == s[-1]        r     ?     r
+2) s[1] == s[-2]          a   ?   a
+3) s[2] == s[-3]            c ? c
+4) len(s) == 1                e
+</pre></div>
+</div>
+<p>Clearly, <code class="docutils literal notranslate"><span class="pre">e</span></code> is the midpoint, and we’ll want to stop once there, otherwise we’ll just be repeating computations. If we know to stop when there is only one character that we are testing, we can re-state the limit as <code class="docutils literal notranslate"><span class="pre">len(s)</span> <span class="pre">==</span> <span class="pre">1</span></code>. This is all very sensible, but if we aren’t mutating <code class="docutils literal notranslate"><span class="pre">s</span></code> how can we ever assert that <code class="docutils literal notranslate"><span class="pre">len(s)</span> <span class="pre">==</span> <span class="pre">1</span></code>? In the case of <code class="docutils literal notranslate"><span class="pre">racecar</span></code>, <code class="docutils literal notranslate"><span class="pre">len(s)</span> <span class="pre">==</span> <span class="pre">7</span></code> always and forever. Except our limit is literally at <code class="docutils literal notranslate"><span class="pre">len(s[3:-4])</span> <span class="pre">==</span> <span class="pre">1</span></code>, so somehow we have to persuade Python that that’s what we’re talking about when we’re talking about <code class="docutils literal notranslate"><span class="pre">s</span></code>. This is where the recursive call works to our advantage, as we can pass slices as our argument:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">pal</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="k">if</span> <span class="c1"># some condition:</span>
+        <span class="c1"># do something</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pal</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>In other words, each frame only knows what it is passed to it as an argument. Let’s begin with <code class="docutils literal notranslate"><span class="pre">racecar</span></code> in the first frame. The argument for the first recursive call is <code class="docutils literal notranslate"><span class="pre">s[1:-1]</span></code>, so the namespace for string <code class="docutils literal notranslate"><span class="pre">s</span></code> in frame 2 is <code class="docutils literal notranslate"><span class="pre">aceca</span></code>. The second recursive call opens a third frame, where the namespace for <code class="docutils literal notranslate"><span class="pre">s</span></code> is <code class="docutils literal notranslate"><span class="pre">cec</span></code>, etc. This means that, if you were deep inside the recursion and expected to access the full representation of <code class="docutils literal notranslate"><span class="pre">s</span> <span class="pre">==</span> <span class="pre">'racecar'</span></code> you’d be out of luck - the function in that frame only knows what’s passed to it.</p>
+<p>I’m going over this again because it’s one of the tricky things about recursion. It seems at first a bit much to reconcile the statement that 1) “We aren’t mutating or copying <code class="docutils literal notranslate"><span class="pre">s</span></code>” with 2) “Each function state has its own <code class="docutils literal notranslate"><span class="pre">s</span></code>, depending on how the recursive call modifies its passed argument.” In fact, thanks to the rules of scope and frame creation, both can and must be true. There may be a bit of a cognitive leap when thinking this way about strings as opposed to numbers, but this is no different than the state of <code class="docutils literal notranslate"><span class="pre">n</span></code> in any given frame of <code class="docutils literal notranslate"><span class="pre">summ()</span></code>. It may have been <code class="docutils literal notranslate"><span class="pre">6</span></code> in the global frame, and <code class="docutils literal notranslate"><span class="pre">5</span></code> in the first recursed frame, but in the next recursed frame, it was passed as <code class="docutils literal notranslate"><span class="pre">4</span></code> and that’s what it is for that frame.</p>
+<p>Next, triggering the recursive call is always dependent on the truth of the condition <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">s[0]</span> <span class="pre">==</span> <span class="pre">s[-1]</span></code>. If <code class="docutils literal notranslate"><span class="pre">s[0]</span> <span class="pre">!=</span> <span class="pre">s[-1]</span></code> at any point in our investigation, we can simply stop what we’re doing and return the bad news, as there is no reason to go any further. (As a side note, a good deal of effective programming is knowing when to stop.) So let’s build this branch into our code:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">pal</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="k">if</span> <span class="c1"># some condition:</span>
+        <span class="c1"># do something</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">s</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="n">pal</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+</pre></div>
+</div>
+<p>There’s another bit of elegance made possible by recursion here. Because the next <code class="docutils literal notranslate"><span class="pre">s</span></code> that is being passed is always snipped of its first and last elements, <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">s[0]</span> <span class="pre">==</span> <span class="pre">s[-1]</span></code> is <em>always the right test</em> for that particular frame. There’s no reason to muck about with evaluating <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">s[0]</span> <span class="pre">==</span> <span class="pre">s[-1]</span></code> and then <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">s[1]</span> <span class="pre">==</span> <span class="pre">s[-2]</span></code> and then <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">s[2]</span> <span class="pre">==</span> <span class="pre">s[-3]</span></code> - the recursive call design handles everything for us correctly.</p>
+</div>
+<div class="section" id="multiple-base-cases">
+<h2>Multiple base cases<a class="headerlink" href="#multiple-base-cases" title="Permalink to this headline">¶</a></h2>
+<p>That’s great, but what about the base case? Based on our discussion, it would be intuitive to say:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span>def pal(s):
+    if len(s) == 1:
+        return True
+…
+</pre></div>
+</div>
+<p>This certainly works for <code class="docutils literal notranslate"><span class="pre">racecar</span></code>, but if we try <code class="docutils literal notranslate"><span class="pre">redder</span></code> we get a <code class="docutils literal notranslate"><span class="pre">IndexError:</span> <span class="pre">string</span> <span class="pre">index</span> <span class="pre">out</span> <span class="pre">of</span> <span class="pre">range</span></code> error. As it turns out, strings, whether palindromic or not, come in two flavors: those that have an odd number of letters, and those with an even number. Since <code class="docutils literal notranslate"><span class="pre">redder</span></code> belongs to the latter, does this mean we have to change our recursive call?</p>
+<p>Not at all. We are far better off defining an additional base case. We know that slicing a character off either end of an odd-numbered string will leave us with a final string of 1. By the same logic, a string with an even number of characters will end up with no elements in it once the final comparison and slicing is executed:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>1) s[0] == s[-1]        r     ?     r
+2) s[1] == s[-2]          e   ?   e
+3) s[2] == s[-3]            d ? d
+4) len(s) == 0
+</pre></div>
+</div>
+<p>That is, if <code class="docutils literal notranslate"><span class="pre">s</span> <span class="pre">==</span> <span class="pre">'dd'</span></code> at step 3, then <code class="docutils literal notranslate"><span class="pre">s[1:-1]</span> <span class="pre">==</span> <span class="pre">''</span></code>, and <code class="docutils literal notranslate"><span class="pre">len(s)</span> <span class="pre">==</span> <span class="pre">0</span></code> for that final recursive call. As you know, an empty string is a perfectly legal thing to have. Here is the final code, accounting for both base cases:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">pal</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">s</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="n">pal</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+</pre></div>
+</div>
+<p>If we trick out our code with print statements we can see the recursion in action:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">frame</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="k">def</span> <span class="nf">pal</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">frame</span>
+    <span class="n">frame</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;frame =&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="s1">&#39;BASE; </span><span class="se">\t</span><span class="s1">  s =&#39;</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">s</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;frame =&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="s1">&#39;TRUE; </span><span class="se">\t</span><span class="s1">  s =&#39;</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">pal</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">frame</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;frame =&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="s1">&#39;BACK; r =&#39;</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="s1">&#39;s =&#39;</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">r</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;frame =&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="s1">&#39;FALSE; </span><span class="se">\t</span><span class="s1">  s =&#39;</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+</pre></div>
+</div>
+<p>If we set <code class="docutils literal notranslate"><span class="pre">s</span></code> to <code class="docutils literal notranslate"><span class="pre">racecar</span></code> we get the following output:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; frame = 1 TRUE;          s = racecar
+&gt;&gt;&gt; frame = 2 TRUE;          s = aceca
+&gt;&gt;&gt; frame = 3 TRUE;          s = cec
+&gt;&gt;&gt; frame = 4 BASE;          s = e
+&gt;&gt;&gt; frame = 3 BACK; r = True s = cec
+&gt;&gt;&gt; frame = 2 BACK; r = True s = aceca
+&gt;&gt;&gt; frame = 1 BACK; r = True s = racecar
+&gt;&gt;&gt; True
+</pre></div>
+</div>
+<p>And for <code class="docutils literal notranslate"><span class="pre">redder</span></code> we see:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; frame = 1 TRUE;          s = redder
+&gt;&gt;&gt; frame = 2 TRUE;          s = edde
+&gt;&gt;&gt; frame = 3 TRUE;          s = dd
+&gt;&gt;&gt; frame = 4 BASE;          s =
+&gt;&gt;&gt; frame = 3 BACK; r = True s = dd
+&gt;&gt;&gt; frame = 2 BACK; r = True s = edde
+&gt;&gt;&gt; frame = 1 BACK; r = True s = redder
+&gt;&gt;&gt; True
+</pre></div>
+</div>
+<p>Note that nothing prints for <code class="docutils literal notranslate"><span class="pre">s</span></code> in the base case frame, as <code class="docutils literal notranslate"><span class="pre">s</span></code> is empty by that point.</p>
+<p>Finally, to show an example where the test fails, let’s try <code class="docutils literal notranslate"><span class="pre">ricercar</span></code>:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; frame = 1 TRUE;           s = ricercar
+&gt;&gt;&gt; frame = 2 FALSE;          s = icerca
+&gt;&gt;&gt; frame = 1 BACK; r = False s = ricercar
+&gt;&gt;&gt; False
+</pre></div>
+</div>
+<p>Notice how the recursion ‘turns back’ as soon as the conditional isn’t met. Thanks to the branching we put into the <code class="docutils literal notranslate"><span class="pre">else</span></code> block, we’re not forced to go all the way to the base case, once we know we don’t have to (although we still have to retrace our way through all the frames we opened pre-recursively). This is a very useful trick to know.</p>
+<p>Our algorithm is pretty good at handling words of any length or parity, but what about phrases? As an addendum, here is some code that will clean up most text and make it legible to our pal <code class="docutils literal notranslate"><span class="pre">pal()</span></code>. In general this is good programming practice - you want to break up functions into discrete areas of responsibility. It makes it much easier to debug, but also to reuse your code.</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">clean</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">s_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">s</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s1">&#39;!@#$ %^&amp;*()_+;:,.&lt;&gt;?/</span><span class="se">\&#39;\&quot;</span><span class="s1">&#39;</span><span class="p">])</span>
+
+<span class="k">def</span> <span class="nf">pal</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">s</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="n">pal</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">pal</span><span class="p">(</span><span class="n">clean</span><span class="p">(</span><span class="s1">&#39;Go hang a salami; I</span><span class="se">\&#39;</span><span class="s1">m a lasagna hog.&#39;</span><span class="p">)))</span>
+</pre></div>
+</div>
+<p>There are two takeaways from this example. The first is that you may not be able to restrict yourself to a single base case. If there are two (or more) states that satisfy the most fundamental statement of the problem, then each should absolutely be part of the base case design. We will see multiple base cases play a vital role in the recursive approach to the Fibonacci sequence later on.</p>
+<p>The second takeaway is our opportunistic approach to using recursion to get what we want. In <code class="docutils literal notranslate"><span class="pre">summ()</span></code>, once we hit the base case, we traced our way back down the stack, adding up the numbers that were deposited in each frame, until we reached the global frame. We always knew we would reach an answer, and based on our initial <code class="docutils literal notranslate"><span class="pre">n</span></code> we also knew how many steps it would take.</p>
+<p>Similarly, in <code class="docutils literal notranslate"><span class="pre">gcdRecur()</span></code> we knew that, given non-zero inputs, we would always get an answer, even if we didn’t know how many steps it might take. But when we got to the base case and found our answer, we simply pulled it back through the stack, all the way to the global frame, with no additional computation necessary.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">pal()</span></code>, we don’t know if the base case is attainable at all. Indeed, our print-tracing for the third, failed case shows that once a comparison of two letters was <code class="docutils literal notranslate"><span class="pre">False</span></code>, all we had to do was return that boolean through the stack. Obviously, that boolean could not come from the base case, so the option had to be created in the form of a conditional branch that would stop the recursion.</p>
+<p>If you are just beginning to work with functions, an 8-line program with no less than 3 return statements may seem like overkill. But the program flow must take into account every possibility of how a function should terminate. A function <em>must</em> exit when it encounters a return statement, and it must exit with the returned value. Therefore, using return statements is the most legible way of recognizing and tracing a function’s output. However, having said all that, we still have to thread our way back through the call stack, even if there are no additional computations to be made. To see this, use <code class="docutils literal notranslate"><span class="pre">racercar</span></code> as an input.</p>
+</div>
+<div class="section" id="heuristics-and-exercises">
+<h2>Heuristics and Exercises<a class="headerlink" href="#heuristics-and-exercises" title="Permalink to this headline">¶</a></h2>
+<p>Testing for palindromicity using recursion suggests to us the following heuristics:</p>
+<p>♦ If there is more than one most basic form of the problem, then there is more than one base case that needs to be incorporated into the code.</p>
+<p>♦ If the purpose of the program is to evaluate the truth of an input, the base case may not be attainable, in which case there must be another way of stopping the recursive process and returning the desired value to the global frame.</p>
+<p><strong>Exercise:</strong> In the last exercise, we implemented a recursive algorithm <code class="docutils literal notranslate"><span class="pre">itos()</span></code> that converted an integer to a string. Now, implement a recursive function <code class="docutils literal notranslate"><span class="pre">stoi()</span></code>, which takes a string and returns the <em>sum</em> of integer values of each character of that string.</p>
+<p>Think carefully about how you identify your base case. What is the minimum possible value of a string, and what does it say about the string? How do you arrive at the base case? And what would you add to the base case as it works its way back through the recursed calls? Again, this problem divides neatly into base case, pre-recursive and post-recursive parts.</p>
+<p>As before, annotate your solution with print statements that show, at each frame, the state of the function, specifying what is being passed and what is being returned, along with a counter to keep track of frames.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Palindromes and Recursion-as-Evaluation</a><ul>
+<li><a class="reference internal" href="#applying-recursion-to-strings">Applying recursion to strings</a></li>
+<li><a class="reference internal" href="#multiple-base-cases">Multiple base cases</a></li>
+<li><a class="reference internal" href="#heuristics-and-exercises">Heuristics and Exercises</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="05 Swapped.html"
+                        title="previous chapter">Recursion and Swapped Arguments</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/06 Palindromes.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="05 Swapped.html" title="Recursion and Swapped Arguments"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Understanding Recursion Using Python 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, panopticonopolis.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
+    </div>
+  </body>
+</html>

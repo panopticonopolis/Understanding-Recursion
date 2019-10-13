@@ -1,0 +1,292 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Lindenmayer Systems &#8212; Understanding Recursion Using Python 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Solving L-System Recursion" href="16 L-System Solution.html" />
+    <link rel="prev" title="The Sierpinski Triangle" href="14 Sierpinski.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="16 L-System Solution.html" title="Solving L-System Recursion"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="14 Sierpinski.html" title="The Sierpinski Triangle"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Understanding Recursion Using Python 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="lindenmayer-systems">
+<span id="l-system"></span><h1>Lindenmayer Systems<a class="headerlink" href="#lindenmayer-systems" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="a-different-way-of-generating-fractals">
+<h2>A different way of generating fractals<a class="headerlink" href="#a-different-way-of-generating-fractals" title="Permalink to this headline">¶</a></h2>
+<p>Also known as ‘rewrite’ or ‘L-systems’, this approach was first developed in 1968 by Aristid Lindenmayer, who used L-systems to describe the behaviour of plant cells, and to model the growth processes of plant development. L-systems can create realistic-looking branching structures, as well as generate fractals in a surprisingly simple way. L-systems are also a gateway to understanding systems of propositional logic. We’ll stay away from propositional logic, and just use the vector-based drawing approach to explore some of these shapes, which is perhaps more immediately gratifying.</p>
+<p>An L-system has three components:</p>
+<ol class="arabic simple">
+<li>An alphabet, consisting of two type of symbols: variables (which can be replaced) and constants (which cannot)</li>
+<li>An axiom, consisting of symbols from the alphabet, which provides the starting point for replacement</li>
+<li>Rule(s) of production, which show us the way(s) in which we can transform each replaceable symbol with said rule(s)</li>
+</ol>
+<p>There is one more requirement for all L-systems: each step (eg, an application of the rules of production) must be comprehensive before the next step is applied. Let’s use Lindenmayer’s original L-system as our first example:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>alphabet:
+    variables: A, B
+    constants: none
+axiom: A
+rules: A —&gt; AB
+       B —&gt; A
+</pre></div>
+</div>
+<p>We begin with our axiom <em>A</em> at step 0. Our first iteration yields <em>AB</em> by the rule <em>A —&gt; AB</em>. Our second iteration involves taking every replaceable element in <em>AB</em> and applying the rules of production. Since <em>A —&gt; AB</em> and <em>B —&gt; A</em>, our next transformation yields <em>AB —&gt; ABA</em>. You can see that for every iteration of <em>n</em> we generate an ever-increasing string of letters:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>n == 0: A
+n == 1: AB
+n == 2: ABA
+n == 3: ABAAB
+n == 4: ABAABABA
+n == 5: ABAABABAABAAB
+n == 6: ABAABABAABAABABAABABA
+n == 7: ABAABABAABAABABAABABAABAABABAABAAB
+</pre></div>
+</div>
+<p>We can represent this in Python with a fairly trivial solution:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">lSysGenerate</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">lSys</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">s</span>
+
+<span class="k">def</span> <span class="nf">lSysCompute</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="n">new</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">c</span> <span class="o">==</span> <span class="s1">&#39;A&#39;</span><span class="p">:</span>
+            <span class="n">new</span> <span class="o">+=</span> <span class="s1">&#39;AB&#39;</span>
+        <span class="k">elif</span> <span class="n">c</span> <span class="o">==</span> <span class="s1">&#39;B&#39;</span><span class="p">:</span>
+            <span class="n">new</span> <span class="o">+=</span> <span class="s1">&#39;A&#39;</span>
+    <span class="k">return</span> <span class="n">new</span>
+
+<span class="n">axiom</span> <span class="o">=</span> <span class="s1">&#39;A&#39;</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">lSysGenerate</span><span class="p">(</span><span class="n">axiom</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; ABAAB
+</pre></div>
+</div>
+<p><strong>Question:</strong> Instead of returning the <em>nth</em> value of the L-system, modify the return statement so that it gathers up the length of each string in a list. Can you identify the sequence? If you go out to <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">==</span> <span class="pre">8</span></code> that should be enough. Derive a formula that will generate the sequence of lengths up to any given <code class="docutils literal notranslate"><span class="pre">n</span></code>.</p>
+<p>So how can we use this system to generate fractals? If we feed it into our turtle program, we can say that every element in the string is a cue for the turtle to draw a segment. But if we can’t turn the turtle then all we’ll have is a very long, very straight line. This is where the alphabet’s constants come in - we’ll designate them as our angles. So if we wanted to turn right by a certain angle, we’ll include a <code class="docutils literal notranslate"><span class="pre">+</span></code>, and if we wanted to go left, we’ll designate it as <code class="docutils literal notranslate"><span class="pre">-</span></code>. Since these constants are not subject to substitution, they need to be written into the rules of production in order for them to propagate through the string.</p>
+<p>Because we’re already familiar with it, let’s go back to the Koch curve. Recall how we trisect a line of length <code class="docutils literal notranslate"><span class="pre">n</span></code>:</p>
+<ol class="arabic simple">
+<li>Draw a line of length <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">//</span> <span class="pre">3</span></code></li>
+<li>Turn left 60°</li>
+<li>Draw a line of length <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">//</span> <span class="pre">3</span></code></li>
+<li>Turn right 120°</li>
+<li>Draw a line of length <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">//</span> <span class="pre">3</span></code></li>
+<li>Turn left 60°</li>
+<li>Draw a line of length <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">//</span> <span class="pre">3</span></code></li>
+</ol>
+<p>We can use an L-system to go from order 0 to order 1 simply by translating this into symbols, axioms and rules of production.</p>
+<p>For the axiom, all we need is a line, as represented by <code class="docutils literal notranslate"><span class="pre">A</span></code>. This, by definition, is our order 0 fractal. To derive our sole rule of production, we rewrite the entire set of instructions above as <code class="docutils literal notranslate"><span class="pre">A-A++A-A</span></code>, which is also what’s required to go from order 0 to order 1.</p>
+<p>This implies that our alphabet consists of three symbols: the variable <code class="docutils literal notranslate"><span class="pre">A</span></code> and the constants <code class="docutils literal notranslate"><span class="pre">+</span></code> and <code class="docutils literal notranslate"><span class="pre">-</span></code>. Finally, we write a bit of code that takes <code class="docutils literal notranslate"><span class="pre">A</span></code>, <code class="docutils literal notranslate"><span class="pre">-</span></code> and <code class="docutils literal notranslate"><span class="pre">+</span></code>, and turns them into commands that the turtle can follow:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">draw</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">c</span> <span class="o">==</span> <span class="s1">&#39;A&#39;</span><span class="p">:</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">fd</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">c</span> <span class="o">==</span> <span class="s1">&#39;-&#39;</span><span class="p">:</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">left</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">c</span> <span class="o">==</span> <span class="s1">&#39;+&#39;</span><span class="p">:</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">right</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Of course, we want to be able to extend this to create as many iterations of <code class="docutils literal notranslate"><span class="pre">A</span></code> as we like.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>n == 0: A
+n == 1: A-A++A-A
+n == 2: A-A++A-A-A-A++A-A++A-A++A-A-A-A++A-A
+n == 3: A-A++A-A-A-A++A-A++A-A++A-A-A-A++A-A-A-A++A-A-A-A++A-A++A-A++A-A-A-A++A-A++A-A++A-A-A-A++A-A++A-A++A-A-A-A++A-A-A-A++A-A-A-A++A-A++A-A++A-A-A-A++A-A
+</pre></div>
+</div>
+<p>Recall that our only variable is <code class="docutils literal notranslate"><span class="pre">A</span></code> - we want to parse our string in such a way that constants are unaffected, otherwise we will muck up our angles and who knows where the turtle will go. So we’ll rewrite <code class="docutils literal notranslate"><span class="pre">lSysCompute()</span></code> using the following crisp construction:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">lSysCompute</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;A&#39;</span><span class="p">:</span> <span class="s1">&#39;A-A++A-A&#39;</span><span class="p">}</span>
+    <span class="k">return</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="ow">or</span> <span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">s</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>The first line in the function declares a dictionary <code class="docutils literal notranslate"><span class="pre">d</span></code> that has the target variable as the key, and the rule of production as its value. This is very handy, as in the future we can just substitute any dictionary we like for <code class="docutils literal notranslate"><span class="pre">d</span></code>. If we have multiple variables, each with its own rule of production, then all we do is add a new key-value pair.</p>
+<p>The second line is a list comprehension: if the character <code class="docutils literal notranslate"><span class="pre">c</span></code> in <code class="docutils literal notranslate"><span class="pre">s</span></code> is in the dictionary as a key, then add its value (ie, rule) as the next list item; if not, just add <code class="docutils literal notranslate"><span class="pre">c</span></code> as it is. Once the list is completed, it’s converted to a string and returned to <code class="docutils literal notranslate"><span class="pre">lSysGenerate()</span></code>.</p>
+<p>Here is our complete code for generating L-system Koch curves:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">string</span>
+<span class="kn">import</span> <span class="nn">turtle</span>
+
+<span class="k">def</span> <span class="nf">lSysGenerate</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">order</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">order</span><span class="p">):</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">lSys</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">s</span>
+
+<span class="k">def</span> <span class="nf">lSysCompute</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;A&#39;</span><span class="p">:</span> <span class="s1">&#39;A-A++A-A&#39;</span><span class="p">}</span>
+    <span class="k">return</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="ow">or</span> <span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">s</span><span class="p">])</span>
+
+<span class="k">def</span> <span class="nf">draw</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">angle</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">string</span><span class="o">.</span><span class="n">ascii_letters</span><span class="p">:</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">c</span> <span class="o">==</span> <span class="s1">&#39;-&#39;</span><span class="p">:</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">left</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">c</span> <span class="o">==</span> <span class="s1">&#39;+&#39;</span><span class="p">:</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">right</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">turtle</span><span class="o">.</span><span class="n">Turtle</span><span class="p">()</span>
+    <span class="n">wn</span> <span class="o">=</span> <span class="n">turtle</span><span class="o">.</span><span class="n">Screen</span><span class="p">()</span>
+    <span class="n">wn</span><span class="o">.</span><span class="n">bgcolor</span><span class="p">(</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
+
+    <span class="n">t</span><span class="o">.</span><span class="n">color</span><span class="p">(</span><span class="s1">&#39;orange&#39;</span><span class="p">)</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">pensize</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">penup</span><span class="p">()</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">setpos</span><span class="p">(</span><span class="o">-</span><span class="mi">250</span><span class="p">,</span> <span class="o">-</span><span class="mi">250</span><span class="p">)</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">pendown</span><span class="p">()</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">speed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">axiom</span> <span class="o">=</span> <span class="s1">&#39;A&#39;</span>
+    <span class="n">length</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="n">angle</span> <span class="o">=</span> <span class="mi">60</span>
+    <span class="n">iterations</span> <span class="o">=</span> <span class="mi">3</span>
+
+    <span class="n">draw</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">lSysGenerate</span><span class="p">(</span><span class="n">axiom</span><span class="p">,</span> <span class="n">iterations</span><span class="p">),</span> <span class="n">length</span><span class="p">,</span> <span class="n">angle</span><span class="p">)</span>
+
+    <span class="n">wn</span><span class="o">.</span><span class="n">exitonclick</span><span class="p">()</span>
+
+<span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The only other modification to the code is in <code class="docutils literal notranslate"><span class="pre">draw()</span></code>, where I’ve changed the <code class="docutils literal notranslate"><span class="pre">if</span></code> block to pick up on the presence of any letter, not just <code class="docutils literal notranslate"><span class="pre">A</span></code> - another functionality we’ll need if we’re to parse strings with more than one variable. (NB: don’t forget to import the <code class="docutils literal notranslate"><span class="pre">string</span></code> module at the top of your code, otherwise Python won’t know how to interpret <code class="docutils literal notranslate"><span class="pre">string.ascii_letters</span></code>.)</p>
+<p>Now we can generate any L-system fractal we like - it’s just a matter of plugging in the right axiom, angle, length and rules of production. Try, for example, the Gosper Curve, whose whole L-system can be characterized as:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>alphabet:
+    variables: A, B
+    constants: +, -
+angle: 60°
+axiom: A
+rules: A —&gt; A-B--B+A++AA+B-
+       B —&gt; +A-BB--B-A++A+B
+</pre></div>
+</div>
+<p>Our old friend the Sierpinski triangle can be represented as well. You’ll note that the axiom is, once again, the base case that we used in <code class="docutils literal notranslate"><span class="pre">sierpinski()</span></code>:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>alphabet:
+    variables: A, B
+    constants: +, -
+angle: 120°
+axiom: A-B-B
+rules: A —&gt; A-B--B+A++AA+B-
+       B —&gt; +A-BB--B-A++A+B
+</pre></div>
+</div>
+<p>A particularly interesting shape is the Sierpinski arrowhead, which has the following traits:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>alphabet:
+    variables: A, B
+    constants: +, -
+angle: 60°
+axiom: A
+rules: A —&gt; B+A+B
+       B —&gt; A-B-A
+</pre></div>
+</div>
+<p>As you can see, the Sierpinski arrowhead has a modest beginning. While it shares the same order 0 shape as the Koch curve, it diverges quite quickly - and only looks ‘right’ when <code class="docutils literal notranslate"><span class="pre">order</span> <span class="pre">%</span> <span class="pre">2</span> <span class="pre">==</span> <span class="pre">0</span></code> (that is, when <code class="docutils literal notranslate"><span class="pre">order</span></code> is even).</p>
+<p>Despite the fact that the rules of production are quite simple compared to the Gosper curve and Sierpinski’s triangle, if you run the arrowhead algorithm with a substantial number of iterations (eg, 8), the shape that it implies will seem quite familiar.</p>
+<p>But hang on, you say. This may be very interesting and all, but so far there hasn’t been any mention of recursion! Also, you may have noticed that, to see some of these drawings in their entirety, you’ve also had to revise your <code class="docutils literal notranslate"><span class="pre">length</span></code> and <code class="docutils literal notranslate"><span class="pre">setpos()</span></code> variables, as the length of an iteration doesn’t scale down nicely as it has done with our implementations of <code class="docutils literal notranslate"><span class="pre">koch()</span></code> and <code class="docutils literal notranslate"><span class="pre">sierpinski()</span></code>.</p>
+<p>I’m not trying to distract you with pretty pictures. By now you should have enough of a grasp on recursion that you can take the above code and figure out how to make it recursive - and have that recursive solution conserve the original length or perimeter of the fractal. Along the way, see if you can discover your own heuristics.</p>
+</div>
+<div class="section" id="exercises">
+<h2>Exercises<a class="headerlink" href="#exercises" title="Permalink to this headline">¶</a></h2>
+<p><strong>Exercise:</strong> Modify the above code into a recursive form, using the Koch curve as an example. Make sure that your recursion preserves the original start and end points of the order 0 fractal - that is, if we have a Koch curve that begins at <code class="docutils literal notranslate"><span class="pre">(-500,</span> <span class="pre">0)</span></code> and ends at <code class="docutils literal notranslate"><span class="pre">(500,</span> <span class="pre">0)</span></code>, then any order of the Koch curve should do the same.</p>
+<p><strong>Exercise:</strong> For a given L-system, find if a string <code class="docutils literal notranslate"><span class="pre">target</span></code> exists as part of the system after a given number of iterations. Write a recursive solution that returns the order where <code class="docutils literal notranslate"><span class="pre">target</span></code> appears, as well as the index position at which it appears.</p>
+<p>For example, say that we want to find at what point <code class="docutils literal notranslate"><span class="pre">target</span> <span class="pre">=</span> <span class="pre">'BAABAABA'</span></code> <em>first</em> appears in Lindenmayer’s original system. After running the function the output should print <code class="docutils literal notranslate"><span class="pre">target</span> <span class="pre">BAABAABA</span> <span class="pre">is</span> <span class="pre">at</span> <span class="pre">index</span> <span class="pre">position</span> <span class="pre">6</span> <span class="pre">at</span> <span class="pre">order</span> <span class="pre">7</span></code>. If it doesn’t, output should be <code class="docutils literal notranslate"><span class="pre">target</span> <span class="pre">BAABAABA</span> <span class="pre">not</span> <span class="pre">found</span></code>.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Lindenmayer Systems</a><ul>
+<li><a class="reference internal" href="#a-different-way-of-generating-fractals">A different way of generating fractals</a></li>
+<li><a class="reference internal" href="#exercises">Exercises</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="14 Sierpinski.html"
+                        title="previous chapter">The Sierpinski Triangle</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="16 L-System Solution.html"
+                        title="next chapter">Solving L-System Recursion</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/15 L-System.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="16 L-System Solution.html" title="Solving L-System Recursion"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="14 Sierpinski.html" title="The Sierpinski Triangle"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Understanding Recursion Using Python 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, panopticonopolis.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,360 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Using Recursion to Make More: The Power Set &#8212; Understanding Recursion Using Python 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Summing a List of Lists" href="07 Lists of Lists.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="07 Lists of Lists.html" title="Summing a List of Lists"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Understanding Recursion Using Python 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="using-recursion-to-make-more-the-power-set">
+<span id="power-set"></span><h1>Using Recursion to Make More: The Power Set<a class="headerlink" href="#using-recursion-to-make-more-the-power-set" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="thinking-before-coding">
+<h2>Thinking before coding<a class="headerlink" href="#thinking-before-coding" title="Permalink to this headline">¶</a></h2>
+<p>So far, we have been using recursion reductively: we get an input and distill it down to a sum, product, integer or even a boolean. We simplified a nested list into a flat list, and, in the last exercise, pulled out a minimum value from any nested list, regardless of the depth of nesting in that list. It makes sense to apply recursion to these sorts of problems, as recursion itself is based on reducing a problem down to smaller and smaller subproblems until we get to the simplest possible statement of the problem. There is a certain cognitive harmony in knowing the answer you need to get from an input, and the method used to do it, work in the same ‘direction’. But what if we wanted to take an input and make <em>more</em> out of it?</p>
+<p>Our example here is the power set, or the set of all subsets of a given set. The power set is an essential gateway towards understanding a large family of problems revolving around combinatorial optimization. As a point of clarification, in Python, a <code class="docutils literal notranslate"><span class="pre">set</span></code> is a collection of unique elements, whereas a <code class="docutils literal notranslate"><span class="pre">list</span></code> may contain duplicates. We’ll use lists for our power set discussion, since a set that generates a power set doesn’t have to consist of unique elements (for instance, ‘apple, banana, banana, mango’ just means you’re working with two bananas). Also, we can leverage some of our previous experience with lists to better approach the problem.</p>
+<p>One thing we can establish right away is the base case. By definition, any set <code class="docutils literal notranslate"><span class="pre">L</span></code>, is itself a member of the power set. The empty set is also always a member of the power set. Therefore we know that the power set of the empty set contains the empty set as its only member:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>powerSet([]) == [[]]
+</pre></div>
+</div>
+<p>Using our basic template, this give us the first outlines of our code:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">powerSet</span><span class="p">(</span><span class="n">L</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">L</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[[]]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># a bunch of code</span>
+</pre></div>
+</div>
+<p>It’s always good to see how a problem behaves, independently of how we might try to solve it. If you spend some time working out a few iterations or instances of a problem, you may be able to make observations or identify patterns that will help greatly with the algorithm design. If you can write a quick snippet of code, great - but sometimes grabbing a pencil and paper is even better. Being able to reason your way to a solution from first principles is one of the best ways to learn algorithmic thinking. So before we get to the rest of the code, let’s see what we can learn by developing the power set ‘in real life’.</p>
+<p>We already know that an empty set (or list - I’ll use the terms interchangeably here) will always return one element - itself - as its power set. After that, we get some pretty serious expansion:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>[]                   == [[]]
+[&#39;a&#39;]                == [[], [&#39;a&#39;]]
+[&#39;a&#39;, &#39;b&#39;]           == [[], [&#39;a&#39;], [&#39;b&#39;], [&#39;a&#39;, &#39;b&#39;]]
+[&#39;a&#39;, &#39;b&#39;, &#39;c&#39;]      == [[], [&#39;a&#39;], [&#39;b&#39;], [&#39;a&#39;, &#39;b&#39;], [&#39;c&#39;], [&#39;a&#39;, &#39;c&#39;], [&#39;b&#39;, &#39;c&#39;], [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;]]
+[&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;] == [[], [&#39;a&#39;], [&#39;b&#39;], [&#39;a&#39;, &#39;b&#39;], [&#39;c&#39;], [&#39;a&#39;, &#39;c&#39;], [&#39;b&#39;, &#39;c&#39;], [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;], [&#39;d&#39;], [&#39;a&#39;, &#39;d&#39;], [&#39;b&#39;, &#39;d&#39;], [&#39;a&#39;, &#39;b&#39;, &#39;d&#39;], [&#39;c&#39;, &#39;d&#39;], [&#39;a&#39;, &#39;c&#39;, &#39;d&#39;], [&#39;b&#39;, &#39;c&#39;, &#39;d&#39;], [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;]]
+</pre></div>
+</div>
+<p>Counting the members (sublists) of each, we see that the power set shows exponential growth, or:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>len(powerSet([]))                   ==  1
+len(powerSet([&#39;a&#39;]))                ==  2
+len(powerSet([&#39;a&#39;, &#39;b&#39;]))           ==  4
+len(powerSet([&#39;a&#39;, &#39;b&#39;, &#39;c&#39;]))      ==  8
+len(powerSet([&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;])) == 16
+len(powerSet(L))                    == 2**len(L)
+</pre></div>
+</div>
+<p>Another interesting conclusion we can draw from the above few instances is that the power set is <em>additive</em>. If <code class="docutils literal notranslate"><span class="pre">L</span> <span class="pre">==</span> <span class="pre">['a',</span> <span class="pre">'b',</span> <span class="pre">'c']</span></code>, then its power set will contain the power set of <code class="docutils literal notranslate"><span class="pre">L</span> <span class="pre">==</span> <span class="pre">['a',</span> <span class="pre">'b']</span></code>. Put another way, we don’t know what the power set of <code class="docutils literal notranslate"><span class="pre">L</span> <span class="pre">==</span> <span class="pre">['a',</span> <span class="pre">'b',</span> <span class="pre">'c']</span></code> is until we know the power set of <code class="docutils literal notranslate"><span class="pre">L</span> <span class="pre">==</span> <span class="pre">['a',</span> <span class="pre">'b']</span></code>. If we asked <code class="docutils literal notranslate"><span class="pre">powerSet()</span></code> to compute <code class="docutils literal notranslate"><span class="pre">L</span> <span class="pre">==</span> <span class="pre">['a',</span> <span class="pre">'b',</span> <span class="pre">'c']</span></code> we might get the following response:</p>
+<ol class="arabic simple">
+<li>I can’t compute the power set of <code class="docutils literal notranslate"><span class="pre">L</span> <span class="pre">==</span> <span class="pre">['a',</span> <span class="pre">'b',</span> <span class="pre">'c']</span></code> because I first need to compute the power set of <code class="docutils literal notranslate"><span class="pre">L</span> <span class="pre">==</span> <span class="pre">['a',</span> <span class="pre">'b']</span></code></li>
+<li>I can’t compute the power set of <code class="docutils literal notranslate"><span class="pre">L</span> <span class="pre">==</span> <span class="pre">['a',</span> <span class="pre">'b']</span></code> because I first need to compute the power set of <code class="docutils literal notranslate"><span class="pre">L</span> <span class="pre">==</span> <span class="pre">['a']</span></code></li>
+<li>I can’t compute the power set of <code class="docutils literal notranslate"><span class="pre">L</span> <span class="pre">==</span> <span class="pre">['a']</span></code> because I first need to compute the power set of <code class="docutils literal notranslate"><span class="pre">L</span> <span class="pre">==</span> <span class="pre">[]</span></code></li>
+</ol>
+<p>In other words, “I can’t do ‘x’ until I’ve done ‘y’ and I can’t do ‘y’ until I’ve done ‘z’.” Whenever you find yourself in a situation like this, the chances for a recursive solution are pretty good.</p>
+<p>In that spirit, we want to reduce <code class="docutils literal notranslate"><span class="pre">L</span></code> until we’ve gotten it down to the empty set. As we did with our palindrome algorithm, we can use slices to send an ever-smaller list as an argument for each recursive call. This time, we apply slices not to the string, but to the list. For our purposes, the result is the same:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">powerSet</span><span class="p">(</span><span class="n">L</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">L</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[[]]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">powerSet</span><span class="p">(</span><span class="n">L</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+<span class="n">L</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;L =&#39;</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">powerSet</span><span class="p">(</span><span class="n">L</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Once at <code class="docutils literal notranslate"><span class="pre">len(L)</span> <span class="pre">==</span> <span class="pre">0</span></code>, we’ll have the smallest statement of the problem in hand: <code class="docutils literal notranslate"><span class="pre">[[]]</span></code>. On the way, we’ll also have seeded each frame with decremented instances of <code class="docutils literal notranslate"><span class="pre">L</span></code>. It looks like we’ve got a handle on at least the pre-recursive portion of the algorithm.</p>
+<p><strong>Question:</strong> Look closely at what gets returned from the base case. Is <code class="docutils literal notranslate"><span class="pre">[[]]</span></code> the same as <code class="docutils literal notranslate"><span class="pre">L[:-1]</span></code> at <code class="docutils literal notranslate"><span class="pre">len(L)</span> <span class="pre">==</span> <span class="pre">0</span></code>? What difference does it make?</p>
+<p>Let’s add our usual print-tracing so we can start tracking frames. Also, it would be good to see the namespace for <code class="docutils literal notranslate"><span class="pre">L</span></code> in each frame:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">frame</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="k">def</span> <span class="nf">powerSet</span><span class="p">(</span><span class="n">L</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">frame</span>
+    <span class="n">frame</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">L</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">base case, frame&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[[]]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">pre-recursive, frame&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;L =&#39;</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">powerSet</span><span class="p">(</span><span class="n">L</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;global frame =&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">)</span>
+<span class="n">L</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;L =&#39;</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">powerSet</span><span class="p">(</span><span class="n">L</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; global frame 0
+&gt;&gt;&gt; L = [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;]
+
+&gt;&gt;&gt; pre-recursive, frame 1
+&gt;&gt;&gt; L = [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;]
+
+&gt;&gt;&gt; pre-recursive, frame 2
+&gt;&gt;&gt; L = [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;]
+
+&gt;&gt;&gt; pre-recursive, frame 3
+&gt;&gt;&gt; L = [&#39;a&#39;, &#39;b&#39;]
+
+&gt;&gt;&gt; pre-recursive, frame 4
+&gt;&gt;&gt; L = [&#39;a&#39;]
+
+&gt;&gt;&gt; base case, frame 5
+&gt;&gt;&gt; [[]]
+</pre></div>
+</div>
+<p>The only value returned throughout the post-recursive cascade at the moment is <code class="docutils literal notranslate"><span class="pre">[[]]</span></code>, so we’ll for now we’ll omit printing those returns. Nevertheless, this code should be sufficient to get us going. We now have a structure that recognizes the additive nature of the power set, but is couched in recursive terms.</p>
+</div>
+<div class="section" id="the-right-seed-in-the-right-frame">
+<h2>The right seed in the right frame<a class="headerlink" href="#the-right-seed-in-the-right-frame" title="Permalink to this headline">¶</a></h2>
+<p>Let’s now think about what we expect to happen in each frame, and what post-recursive communication of values between frames might look like.</p>
+<p>Starting from the base case, we return <code class="docutils literal notranslate"><span class="pre">[[]]</span></code>. In our example, we know that in frame 4, the namespace of <code class="docutils literal notranslate"><span class="pre">L</span></code> is <code class="docutils literal notranslate"><span class="pre">['a']</span></code>. Post-recursively, we can try to create the power set for a set of two elements, <code class="docutils literal notranslate"><span class="pre">[[]]</span></code> and <code class="docutils literal notranslate"><span class="pre">['a']</span></code>. If we can take that result and return it back to frame 3, we can do the same for that frame, and repeat until we have the complete set.</p>
+<p>Put another way, each frame has one, unique element that operates on multiple existing elements to create the permutations needed for that frame. Let’s call what’s coming from the called frame the <code class="docutils literal notranslate"><span class="pre">base</span></code> and what’s waiting for it the <code class="docutils literal notranslate"><span class="pre">operator</span></code>:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>in frame 5:
+    result   == [[]]
+
+in frame 4:
+    base     == [[]]
+    operator == [&#39;a&#39;]
+    result   == [[], [&#39;a&#39;]]
+
+in frame 3:
+    base     == [[], [&#39;a&#39;]]
+    operator == [&#39;b&#39;]
+    result   == [[], [&#39;a&#39;], [&#39;b&#39;], [&#39;a&#39;, &#39;b&#39;]]
+
+in frame 2:
+    base     == [[], [&#39;a&#39;], [&#39;b&#39;], [&#39;a&#39;, &#39;b&#39;]]
+    operator == [&#39;c&#39;]
+    result   == [[], [&#39;a&#39;], [&#39;b&#39;], [&#39;a&#39;, &#39;b&#39;], [&#39;c&#39;], [&#39;a&#39;, &#39;c&#39;], [&#39;b&#39;, &#39;c&#39;], [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;]]
+</pre></div>
+</div>
+<p>It’s clear that the result of each frame becomes the <code class="docutils literal notranslate"><span class="pre">base</span></code> of the frame that called it (remember, we’re moving away from the base case now). So we know that <code class="docutils literal notranslate"><span class="pre">base</span></code> should store the results of the recursive call <code class="docutils literal notranslate"><span class="pre">powerSet(L[:-1])</span></code>. Now we have to compute the interaction of <code class="docutils literal notranslate"><span class="pre">base</span></code> and <code class="docutils literal notranslate"><span class="pre">operator</span></code>, add those results to <code class="docutils literal notranslate"><span class="pre">base</span></code>, and return the whole thing to the next frame.</p>
+<p>First we’ll solve for the interaction between <code class="docutils literal notranslate"><span class="pre">base</span></code> and <code class="docutils literal notranslate"><span class="pre">operator</span></code>, simulating the state found in frame 4:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">base</span> <span class="o">=</span> <span class="p">[[]]</span>
+<span class="n">operator</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">]</span>
+<span class="n">next_base</span> <span class="o">=</span> <span class="n">base</span><span class="p">[:]</span>
+<span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">base</span><span class="p">:</span>
+    <span class="n">next_base</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">b</span> <span class="o">+</span> <span class="n">operator</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">next_base</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; [[[]], [&#39;a&#39;]]
+</pre></div>
+</div>
+<p>Plugging this into our existing draft of <code class="docutils literal notranslate"><span class="pre">powerSet()</span></code>:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">powerSet</span><span class="p">(</span><span class="n">L</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">L</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[[]]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">base</span> <span class="o">=</span> <span class="n">powerSet</span><span class="p">(</span><span class="n">L</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">operator</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">]</span>
+        <span class="n">next_base</span> <span class="o">=</span> <span class="n">base</span><span class="p">[:]</span>
+        <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">base</span><span class="p">:</span>
+            <span class="n">next_base</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">b</span> <span class="o">+</span> <span class="n">operator</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">next_base</span>
+</pre></div>
+</div>
+<p>If you run this code for <code class="docutils literal notranslate"><span class="pre">L</span> <span class="pre">=</span> <span class="pre">[[]]</span></code>, you’ll get the right answer, but for any other <code class="docutils literal notranslate"><span class="pre">L</span></code> it doesn’t quite work. We’re still missing one last piece. Recall what we left in each frame on the way to the base case:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; pre-recursive, frame 1
+&gt;&gt;&gt; L = [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;]
+
+&gt;&gt;&gt; pre-recursive, frame 2
+&gt;&gt;&gt; L = [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;]
+
+&gt;&gt;&gt; pre-recursive, frame 3
+&gt;&gt;&gt; L = [&#39;a&#39;, &#39;b&#39;]
+
+&gt;&gt;&gt; pre-recursive, frame 4
+&gt;&gt;&gt; L = [&#39;a&#39;]
+</pre></div>
+</div>
+<p>You can see that the last item in the list is our <code class="docutils literal notranslate"><span class="pre">operator</span></code>. And it’s easy to specify the last item in any list with <code class="docutils literal notranslate"><span class="pre">L[-1:]</span></code>. So all we have to do is replace <code class="docutils literal notranslate"><span class="pre">operator</span> <span class="pre">=</span> <span class="pre">['a']</span></code> with <code class="docutils literal notranslate"><span class="pre">operator</span> <span class="pre">=</span> <span class="pre">L[:-1]</span></code> to create the generalized case.</p>
+<p>A good takeaway here is how we got to <code class="docutils literal notranslate"><span class="pre">operator</span></code>. Decrementing the original list by slices had two purposes: getting to the base case, and setting up a situation where <code class="docutils literal notranslate"><span class="pre">L[-1:]</span></code> would give us the correct value for <code class="docutils literal notranslate"><span class="pre">operator</span></code> for every frame. In fact, it would be difficult to disentangle the two.</p>
+<p>This indeed works, but note that we can also rewrite the <code class="docutils literal notranslate"><span class="pre">for</span></code> loop as a much more concise list comprehension, and insert it directly into the return statement. Once you know how the code works, it makes it much more readable:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">powerSet</span><span class="p">(</span><span class="n">L</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">L</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[[]]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">base</span> <span class="o">=</span> <span class="n">powerSet</span><span class="p">(</span><span class="n">L</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">operator</span> <span class="o">=</span> <span class="n">L</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="k">return</span> <span class="n">base</span> <span class="o">+</span> <span class="p">[(</span><span class="n">b</span> <span class="o">+</span> <span class="n">operator</span><span class="p">)</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">base</span><span class="p">]</span>
+
+<span class="n">L</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">powerSet</span><span class="p">(</span><span class="n">L</span><span class="p">))</span>
+</pre></div>
+</div>
+<p><strong>Question:</strong> Why did we write <code class="docutils literal notranslate"><span class="pre">L[-1:]</span></code>? Isn’t <code class="docutils literal notranslate"><span class="pre">L[-1]</span></code> sufficient?</p>
+<p><strong>Question:</strong> Can we set <code class="docutils literal notranslate"><span class="pre">operator</span> <span class="pre">=</span> <span class="pre">L[-1:]</span></code> before the recursive call? Why or why not?</p>
+<p>And here is the version with complete print-tracing:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">frame</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="k">def</span> <span class="nf">powerSet</span><span class="p">(</span><span class="n">L</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">frame</span>
+    <span class="n">frame</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">L</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">base case, frame is&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;returning [[]]&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[[]]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">pre-recursive, frame&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;list in this frame is &#39;</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;operator in this frame is &#39;</span><span class="p">,</span> <span class="n">L</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="n">base</span> <span class="o">=</span> <span class="n">powerSet</span><span class="p">(</span><span class="n">L</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">operator</span> <span class="o">=</span> <span class="n">L</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="n">frame</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">post-recursive, frame&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;base in this frame is&#39;</span><span class="p">,</span> <span class="n">base</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;operated on by&#39;</span><span class="p">,</span> <span class="n">operator</span><span class="p">)</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">base</span> <span class="o">+</span> <span class="p">[(</span><span class="n">b</span> <span class="o">+</span> <span class="n">operator</span><span class="p">)</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">base</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;returning&#39;</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">r</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;global frame is&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">)</span>
+<span class="n">L</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;L =&#39;</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">powerSet</span><span class="p">(</span><span class="n">L</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>As with most algorithms, there are many ways to go about generating the power set. I’ve chosen this one because I think it’s a good example for how we can think recursively through the problem, step by step. But it’s always instructive to look at other solutions.</p>
+<p>From Wikipedia:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">powerSet2</span><span class="p">(</span><span class="n">L</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">L</span> <span class="o">==</span> <span class="p">[]:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">L</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">e</span> <span class="o">=</span> <span class="n">L</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">L</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="n">pt</span> <span class="o">=</span> <span class="n">powerSet2</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+        <span class="n">fept</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="p">[</span><span class="n">e</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">pt</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">pt</span> <span class="o">+</span> <span class="n">fept</span>
+</pre></div>
+</div>
+<p><strong>Question:</strong> How is this different in terms of the order in which the power set is constructed? What causes the difference?</p>
+<p>There are also several iterative solutions. You may be disappointed to realize that they are quite similar to the recursive ones. One thing that the iterative solution suggests is that <code class="docutils literal notranslate"><span class="pre">[[]]</span></code> is a sort of mathematical MacGuffin, an excuse to get the recursive process going, but in the end it’s really nothing. You wouldn’t be wrong.</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">powerSet3</span><span class="p">(</span><span class="n">L</span><span class="p">):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[[]]</span>
+    <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">L</span><span class="p">)):</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)):</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">+</span> <span class="n">L</span><span class="p">[</span><span class="n">l</span><span class="p">:</span><span class="n">l</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">result</span>
+</pre></div>
+</div>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">powerSet4</span><span class="p">(</span><span class="n">L</span><span class="p">):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[[]]</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">L</span><span class="p">:</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">subset</span> <span class="o">+</span> <span class="p">[</span><span class="n">e</span><span class="p">]</span> <span class="k">for</span> <span class="n">subset</span> <span class="ow">in</span> <span class="n">result</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">result</span>
+</pre></div>
+</div>
+<p><strong>Question:</strong> What is the difference between the use of <code class="docutils literal notranslate"><span class="pre">append()</span></code> and <code class="docutils literal notranslate"><span class="pre">extend()</span></code> list methods? Can you rewrite <code class="docutils literal notranslate"><span class="pre">powerSet3()</span></code> to use <code class="docutils literal notranslate"><span class="pre">extend()</span></code>, or <code class="docutils literal notranslate"><span class="pre">powerSet4()</span></code> to use <code class="docutils literal notranslate"><span class="pre">append()</span></code>? Why or why not?</p>
+</div>
+<div class="section" id="heuristics-and-exercises">
+<h2>Heuristics and Exercises<a class="headerlink" href="#heuristics-and-exercises" title="Permalink to this headline">¶</a></h2>
+<p>♦ Recursion doesn’t have to be reductive; it can be used to multiply, expand or further elaborate an input.</p>
+<p>♦ Before thinking about a problem in recursive terms, it can be helpful to simulate desired inputs and outputs by creating small ‘modules’ that will produce the desired results, and then using that to specify the return statement and computation that is internal to each frame. If you just work from the base case, the next steps may not be apparent.</p>
+<p>♦ Pre-recursive seeding of frames has more functionality than simply decrementing to the base; it can also provide essential inputs for in-frame computation.</p>
+<p><strong>Exercise:</strong> Write a recursive function <code class="docutils literal notranslate"><span class="pre">powerbin()</span></code> that, given a list of unique elements, returns an additional list of binary representations of each subset of that list. For example, if the input list was:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>L = [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;]
+</pre></div>
+</div>
+<p>Then the following sample of subsets would be returned as:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>[&#39;a&#39;]           == [&#39;1000&#39;]
+[&#39;a&#39;, &#39;c&#39;, &#39;d&#39;] == [&#39;1011&#39;]
+[&#39;b&#39;, &#39;d&#39;]      == [&#39;0101&#39;]
+</pre></div>
+</div>
+<p>What does this tell us about the power set and its relationship to binary counting?</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Using Recursion to Make More: The Power Set</a><ul>
+<li><a class="reference internal" href="#thinking-before-coding">Thinking before coding</a></li>
+<li><a class="reference internal" href="#the-right-seed-in-the-right-frame">The right seed in the right frame</a></li>
+<li><a class="reference internal" href="#heuristics-and-exercises">Heuristics and Exercises</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="07 Lists of Lists.html"
+                        title="previous chapter">Summing a List of Lists</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/08 Power Set.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="07 Lists of Lists.html" title="Summing a List of Lists"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Understanding Recursion Using Python 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, panopticonopolis.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
+    </div>
+  </body>
+</html>

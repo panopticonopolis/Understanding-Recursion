@@ -1,0 +1,450 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Expanding a Series: Pascal’s Triangle &#8212; Understanding Recursion Using Python 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Multiple Recursive Calls: Fibonacci Sequence, Part 1" href="10 Fibonacci 1.html" />
+    <link rel="prev" title="Using Recursion to Make More: The Power Set" href="08 Power Set.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="10 Fibonacci 1.html" title="Multiple Recursive Calls: Fibonacci Sequence, Part 1"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="08 Power Set.html" title="Using Recursion to Make More: The Power Set"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Understanding Recursion Using Python 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="expanding-a-series-pascal-s-triangle">
+<span id="pascal"></span><h1>Expanding a Series: Pascal’s Triangle<a class="headerlink" href="#expanding-a-series-pascal-s-triangle" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="returning-the-nth-layer">
+<h2>Returning the <em>nth</em> layer<a class="headerlink" href="#returning-the-nth-layer" title="Permalink to this headline">¶</a></h2>
+<p>Deriving the power set showed us that recursion could be used to expand an input at a literally exponential rate. The implementation also demonstrated the power of performing the same set of calculations on a frame-by-frame basis, and passing those results on to the next frame further down the stack. We’ll extend this even further with Pascal’s triangle, where we’ll derive an entire series from a minimal base case.</p>
+<p>Pascal’s triangle is complex and beautiful (and pre-dates Pascal substantially). Many other sequences can be derived from it; in turn, we can calculate its values in many ways. We’ll focus on deriving it from its starting point, the number 1. As always, let’s look at how the triangle ‘works’ before we start coding.</p>
+<p>The triangle itself can be rendered as follows:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>      1
+     1 1
+    1 2 1
+   1 3 3 1
+  1 4 6 4 1
+1 5 10 10 5 1
+      …
+</pre></div>
+</div>
+<p>We can represent each row of the triangle as a list that has one more element than the previous one:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>[1]                     len = 1
+[1, 1]                  len = 2
+[1, 2,  1]              len = 3
+[1, 3,  3,  1]          len = 4
+[1, 4,  6,  4,  1]      len = 5
+[1, 5, 10, 10,  5, 1]   len = 6
+</pre></div>
+</div>
+<p>The method of expansion is simple: each next row is constructed by adding the number above and to the left with the number above and to the right, treating blank entries as 0. Traditionally, the first row is designated as the 0th row:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>n        triangle
+
+0            1
+1         1+0 1+0
+2        1  1+1  1
+3      1  1+2 2+1  1
+             …
+</pre></div>
+</div>
+<p>There is a way to calculate any nth row without knowing the value of the preceding row, but we are more interested in leveraging recursion so that we can derive the whole triangle from first principles.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">n</span></code> designates a given row of the triangle, we can decrement it until <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">==</span> <span class="pre">0</span></code> gives us the 0th row, whose value we know is 1. Following our trusty basic template, the base case practically writes itself:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">pascal</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># a whole bunch of code</span>
+</pre></div>
+</div>
+<p>Getting from row 0 to row 1 looks a little tricky, but there’s no reason why we need to deal with it immediately. As we did with <code class="docutils literal notranslate"><span class="pre">powerSet()</span></code>, sometimes an easier next step is to model a way to get from the nth row to the (n + 1)th row, eg:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>1 4 6 4 1 —&gt; 1 5 10 10 5 1
+</pre></div>
+</div>
+<p>In Pythonic terms, how do we get from the fourth row, call it <code class="docutils literal notranslate"><span class="pre">n4</span> <span class="pre">==</span> <span class="pre">[1,</span> <span class="pre">4,</span> <span class="pre">6,</span> <span class="pre">4,</span> <span class="pre">1]</span></code> to the fifth row, <code class="docutils literal notranslate"><span class="pre">n5</span> <span class="pre">==</span> <span class="pre">[1,</span> <span class="pre">5,</span> <span class="pre">10,</span> <span class="pre">10,</span> <span class="pre">5,</span> <span class="pre">1]</span></code>? If we design this correctly, then the algorithm should work for every value of <code class="docutils literal notranslate"><span class="pre">n</span></code>, including the base case, since recursion mandates that a function’s behavior will never change, only its inputs and state. On the other hand, it may work for all recursive cases, but not for the transition from the base case to the recursive case. Then we’ll know that we need to tweak something in the base case.</p>
+<p>To just test for the recursive case, we can set up a ‘fake’ recursive algorithm with the needed input, so we just have to compute the expected output as the return. Since we’re not having <code class="docutils literal notranslate"><span class="pre">pascal()</span></code> call itself, we don’t have to worry about getting tripped up if something goes wrong. It’s more like a one-shot function:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">pascal</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>                <span class="c1"># we want to skip this clause…</span>
+        <span class="k">return</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">n4</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>      <span class="c1"># in place of recursive call</span>
+        <span class="n">n5</span> <span class="o">=</span>                      <span class="c1"># some computation involving n4</span>
+        <span class="k">return</span> <span class="n">n5</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">pascal</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>               <span class="c1"># …so we make the passed arg &gt; 0</span>
+</pre></div>
+</div>
+<p>If we do it correctly, <code class="docutils literal notranslate"><span class="pre">return</span> <span class="pre">n5</span></code> will give us <code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">5,</span> <span class="pre">10,</span> <span class="pre">10,</span> <span class="pre">5,</span> <span class="pre">1]</span></code>. We can then further test our model using <code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">2,</span> <span class="pre">1]</span></code>; if it works, we’ll get <code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">3,</span> <span class="pre">3,</span> <span class="pre">1]</span></code>, and so forth. Finally, we’ll create a connection between these spot tests and the base case: can the same logic convert <code class="docutils literal notranslate"><span class="pre">[1]</span></code> to <code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">1]</span></code>? If so, we’ll be well on our way towards a solution.</p>
+<p>So what can we observe about the relationship between these two lists?</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>n4 == [1, 4, 6, 4, 1]
+n5 == [1, 5, 10, 10, 5, 1]
+</pre></div>
+</div>
+<p>We know that, for <code class="docutils literal notranslate"><span class="pre">n5</span></code>, the first term in the row is 1, so we may as well declare our list with an initial value of <code class="docutils literal notranslate"><span class="pre">[1]</span></code>. We derive the inner terms of <code class="docutils literal notranslate"><span class="pre">n5</span></code> by adding consecutive pairs of terms from <code class="docutils literal notranslate"><span class="pre">n4</span></code>. Finally, the last term of <code class="docutils literal notranslate"><span class="pre">n5</span></code> is again 1, making it 1 term longer than <code class="docutils literal notranslate"><span class="pre">n4</span></code>. Here’s a first draft:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">pascal</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">n4</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">n5</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">n4</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">n5</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n4</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">n4</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">n5</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">n5</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">pascal</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; [1, 5, 10, 10, 5, 1]
+</pre></div>
+</div>
+<p><strong>Question:</strong> Why are we ranging over <code class="docutils literal notranslate"><span class="pre">len(n4)</span> <span class="pre">-</span> <span class="pre">1</span></code> and not <code class="docutils literal notranslate"><span class="pre">len(n4)</span></code>?</p>
+<p>So this is looking pretty good. Spot-testing other rows also gives us the correct values. Best of all, our little algorithm generates row 1 from the base case, that is, row 0. But before we put it all together, let’s rewrite the loop as a (slightly verbose) list comprehension:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">pascal</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">n4</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">[(</span><span class="n">n4</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">n4</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">n4</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">+</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">pascal</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; [1, 4, 6, 4, 1]
+</pre></div>
+</div>
+<p>This restatement allows us to see, perhaps more clearly than in the <code class="docutils literal notranslate"><span class="pre">for</span></code> loop, why the computation of the 0th row to the first row works:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">return</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">[(</span><span class="n">n4</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">n4</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">n4</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">+</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>We are guaranteed to return a list with first and last elements <code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">1]</span></code>. This is true <em>even if</em> the entire list comprehension in the middle computes to nothing (ie, an empty list), since <code class="docutils literal notranslate"><span class="pre">[1]</span> <span class="pre">+</span> <span class="pre">[]</span> <span class="pre">+</span> <span class="pre">[1]</span> <span class="pre">==</span> <span class="pre">[1,</span> <span class="pre">1]</span></code>. And this is precisely what happens when the returned value is <code class="docutils literal notranslate"><span class="pre">[1]</span></code>, which is the base case: plugging <code class="docutils literal notranslate"><span class="pre">[1]</span></code> into the list comprehension yields an empty list. This is how we get from the 0th row to the 1st row, or from the base case to the first recursed frame!</p>
+<p>Finally, if we swap out the defined input <code class="docutils literal notranslate"><span class="pre">n4</span> <span class="pre">=</span> <span class="pre">[1,</span> <span class="pre">3,</span> <span class="pre">3,</span> <span class="pre">1]</span></code> with a decrementing recursive call such as <code class="docutils literal notranslate"><span class="pre">pascal(n</span> <span class="pre">-</span> <span class="pre">1)</span></code> we are close to being finished. All we have to do is update our variable names and we have our final code:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">pascal</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">pascal</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">[(</span><span class="n">r</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">r</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">+</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">pascal</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; [1, 4, 6, 4, 1]
+</pre></div>
+</div>
+<p>With full print-tracing (and a little bit of variable re-arranging, since we want to print between the calculation of <code class="docutils literal notranslate"><span class="pre">row</span></code> and the return statement), we have:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">frame</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">5</span>
+
+<span class="k">def</span> <span class="nf">pascal</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">frame</span>
+    <span class="n">frame</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">base case frame&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;n = 0; returning [1]&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">pre-recursive, frame&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;n =&#39;</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">pascal</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="p">[(</span><span class="n">r</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="n">r</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span><span class="o">+</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">frame</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">post-recursive, frame&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;n =&#39;</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;returning&#39;</span><span class="p">,</span> <span class="n">row</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">row</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;global frame =&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;n =&#39;</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">pascal</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; global frame = 0
+&gt;&gt;&gt; n = 5
+
+&gt;&gt;&gt; pre-recursive, frame 1
+&gt;&gt;&gt; n = 5
+
+&gt;&gt;&gt; pre-recursive, frame 2
+&gt;&gt;&gt; n = 4
+
+&gt;&gt;&gt; pre-recursive, frame 3
+&gt;&gt;&gt; n = 3
+
+&gt;&gt;&gt; pre-recursive, frame 4
+&gt;&gt;&gt; n = 2
+
+&gt;&gt;&gt; pre-recursive, frame 5
+&gt;&gt;&gt; n = 1
+
+&gt;&gt;&gt; base case frame = 6
+&gt;&gt;&gt; n = 0; returning [1]
+
+&gt;&gt;&gt; post-recursive, frame 5
+&gt;&gt;&gt; n = 1
+&gt;&gt;&gt; returning [1, 1]
+
+&gt;&gt;&gt; post-recursive, frame 4
+&gt;&gt;&gt; n = 2
+&gt;&gt;&gt; returning [1, 2, 1]
+
+&gt;&gt;&gt; post-recursive, frame 3
+&gt;&gt;&gt; n = 3
+&gt;&gt;&gt; returning [1, 3, 3, 1]
+
+&gt;&gt;&gt; post-recursive, frame 2
+&gt;&gt;&gt; n = 4
+&gt;&gt;&gt; returning [1, 4, 6, 4, 1]
+
+&gt;&gt;&gt; post-recursive, frame 1
+&gt;&gt;&gt; n = 5
+&gt;&gt;&gt; returning [1, 5, 10, 10, 5, 1]
+&gt;&gt;&gt; [1, 5, 10, 10, 5, 1]
+</pre></div>
+</div>
+<p>If you don’t like the verbosity of the list comprehension, here is a very elegant use of the <code class="docutils literal notranslate"><span class="pre">zip()</span></code> and <code class="docutils literal notranslate"><span class="pre">map()</span></code> methods that cuts down on the clutter. Otherwise the code is exactly the same:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">pascal</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">pascal</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">pairs</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">r</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="nb">map</span><span class="p">(</span><span class="nb">sum</span><span class="p">,</span> <span class="n">pairs</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">row</span>
+</pre></div>
+</div>
+<p>Spend a few minutes with Python’s documentation to figure out exactly how these two methods work. They don’t do anything loops and such can’t do, but they do provide a very convenient shorthand.</p>
+</div>
+<div class="section" id="returning-the-entire-series">
+<h2>Returning the entire series<a class="headerlink" href="#returning-the-entire-series" title="Permalink to this headline">¶</a></h2>
+<p>Hang on a minute, though. We’re not really returning the triangle, are we? We’re just getting back the specific row that we asked for as <code class="docutils literal notranslate"><span class="pre">n</span></code>. All the other rows that get computed on the way are discarded, which seems a bit of a shame.</p>
+<p>We could set up, outside the function, a loop to append all returned values from <code class="docutils literal notranslate"><span class="pre">pascal()</span></code> to a list <code class="docutils literal notranslate"><span class="pre">p</span></code>:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">n</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">p</span> <span class="o">=</span> <span class="p">[</span><span class="n">pascal</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)]</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; [[1], [1, 1], [1, 2, 1], [1, 3, 3, 1], [1, 4, 6, 4, 1]]
+</pre></div>
+</div>
+<p>This gives us the correct values for rows 0-4. But it’s a little expensive, in the sense that we are repeating the calculations leading up to <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">=</span> <span class="pre">3</span></code> all over again in order to get to <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">=</span> <span class="pre">4</span></code>, etc. Is there a way to write the recursion so that it returns the complete list?</p>
+<p>One of the things that we can do is send a second argument to <code class="docutils literal notranslate"><span class="pre">pascal()</span></code> that will store all layers so far computed. We still use <code class="docutils literal notranslate"><span class="pre">n</span></code> to designate the last row/frame that we want, and it still works as our counter to get us down to the base case of <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">n</span> <span class="pre">==</span> <span class="pre">0</span></code>. But we also create a list <code class="docutils literal notranslate"><span class="pre">tri</span></code> that scoops up every row as it is created. Here’s a first draft:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">pascal</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">tri</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[[</span><span class="mi">1</span><span class="p">]]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">pascal</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">tri</span><span class="p">)</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">[(</span><span class="n">r</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">r</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">+</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">tri</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;tri =&#39;</span><span class="p">,</span> <span class="n">tri</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">row</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">pascal</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="p">[[</span><span class="mi">1</span><span class="p">]]))</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; tri = [[1], [1, 1]]
+&gt;&gt;&gt; tri = [[1], [1, 1], [1, 2, 1]]
+&gt;&gt;&gt; tri = [[1], [1, 1], [1, 2, 1], [1, 3, 3, 1]]
+&gt;&gt;&gt; tri = [[1], [1, 1], [1, 2, 1], [1, 3, 3, 1], [1, 4, 6, 4, 1]]
+&gt;&gt;&gt; [1, 4, 6, 4, 1]]
+</pre></div>
+</div>
+<p>The recursive call <code class="docutils literal notranslate"><span class="pre">r</span> <span class="pre">=</span> <span class="pre">pascal(n</span> <span class="pre">-</span> <span class="pre">1,</span> <span class="pre">tri)</span></code> may look a little odd. Obviously, now that <code class="docutils literal notranslate"><span class="pre">pascal()</span></code> has two arguments, the interpreter requires that we pass two arguments every time we call it, but it also looks like we’re mashing two values into one variable <code class="docutils literal notranslate"><span class="pre">r</span></code>. Except we’re not, because that’s not what’s being returned. The value returned is <code class="docutils literal notranslate"><span class="pre">row</span></code>. If you print out <code class="docutils literal notranslate"><span class="pre">r</span></code> right after the recursion call, you’ll see this:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; [1]
+&gt;&gt;&gt; [1, 1]
+&gt;&gt;&gt; [1, 2, 1]
+&gt;&gt;&gt; [1, 3, 3, 1]
+</pre></div>
+</div>
+<p>What you’re seeing is <code class="docutils literal notranslate"><span class="pre">row</span></code>, not <code class="docutils literal notranslate"><span class="pre">n</span></code> or <code class="docutils literal notranslate"><span class="pre">tri</span></code>. Keep in mind that what we are returning to <code class="docutils literal notranslate"><span class="pre">r</span></code> is first the <em>base case</em>, which is <code class="docutils literal notranslate"><span class="pre">[[1]]</span></code>, followed by each recursed value of <code class="docutils literal notranslate"><span class="pre">row</span></code>. You may well protest that there is, in fact, an <code class="docutils literal notranslate"><span class="pre">n</span></code>, because you can print for it and it will yield a value. That value of <code class="docutils literal notranslate"><span class="pre">n</span></code> you’re accessing was computed on the way towards the base case and is still residing in the frame as a part of the function’s state. It was there since the creation of that frame, and has nothing to do with the chain of <code class="docutils literal notranslate"><span class="pre">return</span></code> statements.</p>
+<p>Also note the subtle change in the base case: we now want to return <code class="docutils literal notranslate"><span class="pre">[[1]]</span></code> and not <code class="docutils literal notranslate"><span class="pre">[1]</span></code> since we are appending lists to the base case’s return value, which is itself a list whose first element is <code class="docutils literal notranslate"><span class="pre">[1]</span></code>.</p>
+<p>Back to our larger problem. We can see from <code class="docutils literal notranslate"><span class="pre">tri</span></code> that we’re accumulating the rows correctly, but in the end there is nowhere for them to go, since the return statement (ie, what is returned by <code class="docutils literal notranslate"><span class="pre">pascal(n</span> <span class="pre">-</span> <span class="pre">1,</span> <span class="pre">tri)</span></code> and bound to <code class="docutils literal notranslate"><span class="pre">r</span></code>) must be a list that represents the row on which the new row will be based - and not a list of lists. If we have any chance of seeing the entire triangle, what we need to do is return all of <code class="docutils literal notranslate"><span class="pre">tri</span></code>. This then means that we only want the last item in the <code class="docutils literal notranslate"><span class="pre">tri</span></code> list. But even if we write…</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">return</span> <span class="n">tri</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>…as the return statement we get the same output as above - the last row of the triangle.</p>
+<p>What have to re-state the way in which we compute the row: if we are sending all of <code class="docutils literal notranslate"><span class="pre">tri</span></code> to <code class="docutils literal notranslate"><span class="pre">r</span></code>, then we need to tell the function to operate on the last item of the list in <code class="docutils literal notranslate"><span class="pre">r</span></code>, which is the most recently calculated row, in order to compute <code class="docutils literal notranslate"><span class="pre">row</span></code>. For example, if we have been generating the whole list and at a certain point we returned…</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">r</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">]]</span>
+</pre></div>
+</div>
+<p>…then we know that the last element (in this case, <code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">3,</span> <span class="pre">3,</span> <span class="pre">1]</span></code>) is always represented by <code class="docutils literal notranslate"><span class="pre">r[-1]</span></code>. We want our calculation of <code class="docutils literal notranslate"><span class="pre">row</span></code> to take this into account. Looking at the listcomp we built…</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">row</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">[(</span><span class="n">r</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">r</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">+</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>…it’s clear that if we are applying a list of lists to this we will get a mess, if not an outright error. For example, in the first iteration, <code class="docutils literal notranslate"><span class="pre">r[i]</span> <span class="pre">==</span> <span class="pre">[1]</span></code> and <code class="docutils literal notranslate"><span class="pre">r[i</span> <span class="pre">+</span> <span class="pre">1]</span> <span class="pre">==</span> <span class="pre">[1,</span> <span class="pre">1]</span></code>. Instead of operating on a single list we are mashing entire lists together. What a disaster.</p>
+<p>Fortunately, Python allows us to specify an element that belongs to a list, even if that list is part of another, larger list:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">L</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="mi">3</span><span class="p">,</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]]</span>
+<span class="n">L</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">L</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">L</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; 2
+&gt;&gt;&gt; 3
+&gt;&gt;&gt; 4
+</pre></div>
+</div>
+<p>We can integrate this into a list comprehension, rewriting the <code class="docutils literal notranslate"><span class="pre">row</span></code> computation as:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">row</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">[(</span><span class="n">r</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">r</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">+</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>In other words, we are saying “take the ith element of the last item in <code class="docutils literal notranslate"><span class="pre">r</span></code> and add it to the next element of that same item in <code class="docutils literal notranslate"><span class="pre">r</span></code>”. Thanks to this tweak, our new code doesn’t look that different from the original:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">pascal</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">tri</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[[</span><span class="mi">1</span><span class="p">]]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">pascal</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">tri</span><span class="p">)</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">[(</span><span class="n">r</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">r</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">+</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">tri</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tri</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">pascal</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="p">[[</span><span class="mi">1</span><span class="p">]]))</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; [[1], [1, 1], [1, 2, 1], [1, 3, 3, 1], [1, 4, 6, 4, 1]]
+</pre></div>
+</div>
+<p>I admit that this listcomp is even more verbose than the first time around, so we can also restate this in terms of the original <code class="docutils literal notranslate"><span class="pre">for</span></code> loop formulation:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">pascal</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">tri</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[[</span><span class="mi">1</span><span class="p">]]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">pascal</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">tri</span><span class="p">)</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">r</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">tri</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tri</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">pascal</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="p">[[</span><span class="mi">1</span><span class="p">]]))</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; [[1], [1, 1], [1, 2, 1], [1, 3, 3, 1], [1, 4, 6, 4, 1]]
+</pre></div>
+</div>
+<p>To see for yourself, insert a complete set of print-tracing elements and inspect how the recursion unfolds.</p>
+</div>
+<div class="section" id="heuristics-and-exercises">
+<h2>Heuristics and Exercises<a class="headerlink" href="#heuristics-and-exercises" title="Permalink to this headline">¶</a></h2>
+<p>♦ As we did with <code class="docutils literal notranslate"><span class="pre">powerSet()</span></code>, if you find yourself stuck for how to think through a problem recursively, solve a small portion of the problem first by creating a ‘fake’ recursive function. Once this one-shot function works, test it for other inputs, and then see if it works for what you chose to return from the base case.</p>
+<p>This is very different from solving the entire problem iteratively. While an iterative approach may give you visibility into the problem’s general behavior, it may not translate easily (or at all) into a recursive solution. The ‘fake recursion’ approach is more closely aligned with thinking recursively: we work within a function that’s set up to work recursively but doesn’t actually recurse. We attempt to solve for a single frame within the larger problem; by the principle of induction, we then continue testing the hypothesis. If it works for ‘n’, it should work for ‘n + 1’, ‘n - 1’, ‘n +/- x’ and, finally, ‘n == 0’, our base case.</p>
+<p>♦ Sometimes the recursive call just drives to the base case and doesn’t need to do anything more than that. With <code class="docutils literal notranslate"><span class="pre">summ()</span></code> we added the namespace of <code class="docutils literal notranslate"><span class="pre">n</span></code> in each frame to the returning sum. Here, <code class="docutils literal notranslate"><span class="pre">pascal(n</span> <span class="pre">-</span> <span class="pre">1)</span></code> merely sets up the correct number of frames for the post-recursive cascade.</p>
+<p>♦ What is returned by each frame and what is computed within each frame always works together. If we alter what each frame returns, we will probably have to change the computation inside each frame. But recursion demands that each frame receive the same returned variable(s), and perform the same computations. This is one of the frustrations people experience with recursion, as it can lead to situations where nothing works until everything (suddenly) works.</p>
+<p>♦ Multiple arguments can be passed to the recursive function to create containers for more comprehensive data. If we cannot alter the way the function is being called (ie, <code class="docutils literal notranslate"><span class="pre">pascal()</span></code> will only accept one argument), then we can set a default parameter which in many cases will fulfill the requirement, eg: <code class="docutils literal notranslate"><span class="pre">def</span> <span class="pre">pascal(n,</span> <span class="pre">tri=[[1]])</span></code>.</p>
+<p>♦ Always worth re-stating: A recursive function’s work is basically divisible into two parts: the pre-recursive computation and setup on the way to the base case, and the post-recursive computation, on the way back. There is no setup on the way back - you have to work with what you’ve got. When designing a recursive solution, you have to determine what needs to happen on the way in, and what needs to happen on the way back out. The distinct dividing line is the recursive call itself.</p>
+<p>We’ve already seen two extreme examples. In <code class="docutils literal notranslate"><span class="pre">pascal()</span></code>, all of the work happens on the return trip from the base case; this is also known as ‘corecursion’. Whereas in <code class="docutils literal notranslate"><span class="pre">pal()</span></code>, all of the work happens on the way to the base case. Recursion is flexible like that.</p>
+<p><strong>Exercise:</strong> Building on one of the above heuristics, rewrite our last version of <code class="docutils literal notranslate"><span class="pre">pascal()</span></code> to use <code class="docutils literal notranslate"><span class="pre">tri=[[1]]</span></code> as a default argument. What else do you need to change inside and outside the function to make it work? What stays the same? What can you change that may not make a difference at all?</p>
+<p><strong>Exercise:</strong> If we examine Pascal’s triangle, one of its sequences is the triangular numbers:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>0                1
+1               1 1
+2              1 2 1
+3             1 3 3 1
+4            1 4 6 4 1
+5          1 5 10 10 5 1
+</pre></div>
+</div>
+<p>One way to visualize the triangular numbers is as the number of dots needed to create an <a class="reference external" href="https://en.wikipedia.org/wiki/Triangular_number#/media/File:First_six_triangular_numbers.svg">equilateral triangle</a>. If we omit 0, the sequence is as follows:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>1, 3, 6, 10, 15, 21, 28, 36…
+</pre></div>
+</div>
+<p>You can see that Pascal’s triangle has this sequence represented (twice!) as an interior diagonal: the 1st element of row 2, the second element of row 3, the third element of row 4, etc. Conversely, the same sequence can be read from: the last element of row 2, the second-to-last element of row 3, the third-to-last element of row 4, etc.</p>
+<p>[either a recursive function to pull out the triangular numbers from the output of <code class="docutils literal notranslate"><span class="pre">pascal()</span></code>, or by modifying <code class="docutils literal notranslate"><span class="pre">pascal()</span></code> itself, not sure yet]</p>
+<p>Hint: get rid of the pretty formatting and left-justify the triangle to see how the triangular numbers line up.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Expanding a Series: Pascal’s Triangle</a><ul>
+<li><a class="reference internal" href="#returning-the-nth-layer">Returning the <em>nth</em> layer</a></li>
+<li><a class="reference internal" href="#returning-the-entire-series">Returning the entire series</a></li>
+<li><a class="reference internal" href="#heuristics-and-exercises">Heuristics and Exercises</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="08 Power Set.html"
+                        title="previous chapter">Using Recursion to Make More: The Power Set</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="10 Fibonacci 1.html"
+                        title="next chapter">Multiple Recursive Calls: Fibonacci Sequence, Part 1</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/09 Pascal.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="10 Fibonacci 1.html" title="Multiple Recursive Calls: Fibonacci Sequence, Part 1"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="08 Power Set.html" title="Using Recursion to Make More: The Power Set"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Understanding Recursion Using Python 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, panopticonopolis.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
+    </div>
+  </body>
+</html>

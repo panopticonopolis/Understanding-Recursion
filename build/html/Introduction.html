@@ -1,0 +1,110 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Introduction: Another Guide To Recursion? And Why Is It So Long? &#8212; Understanding Recursion Using Python 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Scope, Frame and Stack" href="Scope, Frame and Stack.html" />
+    <link rel="prev" title="Understanding Recursion Using Python" href="index.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="Scope, Frame and Stack.html" title="Scope, Frame and Stack"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Understanding Recursion Using Python"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Understanding Recursion Using Python 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="introduction-another-guide-to-recursion-and-why-is-it-so-long">
+<h1>Introduction: Another Guide To Recursion? And Why Is It So Long?<a class="headerlink" href="#introduction-another-guide-to-recursion-and-why-is-it-so-long" title="Permalink to this headline">¶</a></h1>
+<p>Oftentimes algorithms are presented to beginning programmers as recipes or to-do lists. You may have a to-do list that starts with ‘pick up the kids from school’, then realize that, you first must put gas in the car. But first of all, you need to find your car keys. You can’t do the last step unless you’ve done all the other ones. If you’re baking a cake, the final step may be to frost the cake, but not before you have taken the cake out of the oven, which of course requires you to make the cake in the first place, in addition to preparing the frosting, etc.</p>
+<p>Of course, there is nothing particularly recursive about this. Breaking a problem down into more manageable substeps is true of algorithmic design in general. What makes recursion unique in algorithmic thinking is the fact that it’s about designing functions in such a way that, simply by running the same function over and over with slightly modified inputs, you will have your cake and eat it too.</p>
+<p>The following guide to recursion is undoubtedly long. But that is because most material currently available online is simply too short. Recursion is an extremely compact method. While this allows for a presentation that is usually considered ‘elegant’, the practical consequence is that much of the program execution takes place implicitly.</p>
+<p>For example, it’s not terribly difficult to understand the principle of recursive action, whether generally or for a specific piece of code. But, as with any algorithm, the ability to write out the actual process of computation on a line-by-line basis is where the rubber meets the road. As a result, much of the length of this document is due to the fact that I have annotated what actually happens when a function undergoes recursive computation, using print statements to trace inputs, transformations and outputs.</p>
+<p>It’s also long because there are a few ways of presenting problems and their solutions. The two most common ways are to either just present the solution, or present the solution with a brief commentary on its salient aspects. Although it’s not true for every algorithm I’ve chosen to present here, in this guide I opt for a third way: describing how to think about the problem, and then how to convert that critical thinking into code.</p>
+<p>This guide is a distillation of my own attempts to gain a deeper understanding of recursion and its analysis and applications. If you understand recursion on an intuitive level, this guide is most likely not for you. It will be boring and obvious. But for many others, it’s my hope that the explanations of how recursive calls and returns work will be time well spent.</p>
+<p>The following text uses Python 3.6 but the concepts should be broadly applicable to many languages. A solid working knowledge of Python is preferred, including the basic data types and their associated methods. (Virtually) no familiarity with object-oriented techniques is needed.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Understanding Recursion Using Python</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="Scope, Frame and Stack.html"
+                        title="next chapter">Scope, Frame and Stack</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/Introduction.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="Scope, Frame and Stack.html" title="Scope, Frame and Stack"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Understanding Recursion Using Python"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Understanding Recursion Using Python 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, panopticonopolis.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
+    </div>
+  </body>
+</html>

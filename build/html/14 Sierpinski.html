@@ -1,0 +1,437 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>The Sierpinski Triangle &#8212; Understanding Recursion Using Python 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Lindenmayer Systems" href="15 L-System.html" />
+    <link rel="prev" title="Recursion and Self-Similarity: Koch Curves" href="13 Koch Curves.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="15 L-System.html" title="Lindenmayer Systems"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="13 Koch Curves.html" title="Recursion and Self-Similarity: Koch Curves"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Understanding Recursion Using Python 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="the-sierpinski-triangle">
+<span id="sierpinski"></span><h1>The Sierpinski Triangle<a class="headerlink" href="#the-sierpinski-triangle" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="setting-up-the-problem">
+<h2>Setting up the problem<a class="headerlink" href="#setting-up-the-problem" title="Permalink to this headline">¶</a></h2>
+<p>We now know how to recursively apply a trisection to create complex forms that are nevertheless bounded by the initial length or perimeter of a fractal’s simplest possible order. Next we’ll leverage these and other techniques we’ve learned to develop a very interesting fractal which takes itself as the recursive element: the Sierpinski triangle.</p>
+<p>Briefly, the Sierpinski triangle is a fractal whose initial equilateral triangle is replaced by three smaller equilateral triangles, each of the same size, that can fit inside its perimeter. You could make the argument that the middle portion of the initial triangle can accommodate a fourth triangle, but we are disallowing rotation, so that region remains empty. Further orders of the fractal replace each of the three new triangles with another three, and so forth.</p>
+<div class="figure align-center" id="id1">
+<a class="reference internal image-reference" href="_images/s0.jpg"><img alt="alternate text" src="_images/s0.jpg" style="width: 736.4000000000001px; height: 215.60000000000002px;" /></a>
+<p class="caption"><span class="caption-text">Figure 1. Sierpinski triangles, orders 0 to 2</span></p>
+</div>
+<p>As with the Koch curve and Koch snowflake, we first want to establish the 0th order of the fractal. In fact, it is the same as the Koch snowflake - a single equilateral triangle. Unlike the snowflake, common practice draws it with the base on the bottom, so let’s modify our code to reflect this:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">turtle</span>
+
+<span class="k">def</span> <span class="nf">draw</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">fillcolor</span><span class="p">(</span><span class="s1">&#39;orange&#39;</span><span class="p">)</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">up</span><span class="p">()</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">goto</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">down</span><span class="p">()</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">begin_fill</span><span class="p">()</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">goto</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">goto</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">goto</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">end_fill</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">turtle</span><span class="o">.</span><span class="n">Turtle</span><span class="p">()</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">speed</span><span class="p">()</span>
+    <span class="n">wn</span> <span class="o">=</span> <span class="n">turtle</span><span class="o">.</span><span class="n">Screen</span><span class="p">()</span>
+    <span class="n">wn</span><span class="o">.</span><span class="n">bgcolor</span><span class="p">(</span><span class="s2">&quot;black&quot;</span><span class="p">)</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="p">[[</span><span class="o">-</span><span class="mi">500</span><span class="p">,</span> <span class="o">-</span><span class="mi">400</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">500</span><span class="p">],</span> <span class="p">[</span><span class="mi">500</span><span class="p">,</span> <span class="o">-</span><span class="mi">400</span><span class="p">]]</span>
+    <span class="n">draw</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+    <span class="n">wn</span><span class="o">.</span><span class="n">exitonclick</span><span class="p">()</span>
+
+<span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>I’ve also done a few things differently here, which will come in handy down the road. The first is wrapping the code that used to be in the global frame into a <code class="docutils literal notranslate"><span class="pre">main()</span></code> function. It’s generally good practice to write programs where everything is defined within a function. Compartmentalization helps debugging and keeps functions from accessing variables that, by virtue of being in the global frame and not residing in a specific function, you may not realize are being accessing until something breaks.</p>
+<p>The second is in the drawing itself. This time, I’m not concerned with specifying a color for the line. Instead, by using <code class="docutils literal notranslate"><span class="pre">begin_fill()</span></code> and <code class="docutils literal notranslate"><span class="pre">end_fill()</span></code>, the line creates the shape that is filled at the moment <code class="docutils literal notranslate"><span class="pre">end_fill()</span></code> is called. The Sierpinski triangle is shape-based, as opposed to the line-based fractals we have created so far, so it will allow us to better see what we have drawn.</p>
+<p>Finally, the most important innovation is our use of coordinates to guide the drawing. We use the turtle’s <code class="docutils literal notranslate"><span class="pre">goto()</span></code> method to tell turtle where it’s going next. The <code class="docutils literal notranslate"><span class="pre">draw()</span></code> function calls <code class="docutils literal notranslate"><span class="pre">t.goto()</span></code> four times: we first ‘pick up’ the turtle and jump to the desired coordinates, put it ‘down’ and draw our triangle with the next three <code class="docutils literal notranslate"><span class="pre">goto()</span></code> method calls.</p>
+<p>To finish drawing, we end at the same coordinates we started (NB: <code class="docutils literal notranslate"><span class="pre">end_fill()</span></code> will fill up any space outlined between it and the <code class="docutils literal notranslate"><span class="pre">begin_fill()</span></code>, regardless of whether the shape is closed). Also, writing <code class="docutils literal notranslate"><span class="pre">t.goto(p[0][0],</span> <span class="pre">p[0][1])</span></code> may seem unnecessary when we could just write <code class="docutils literal notranslate"><span class="pre">t.goto(p[0])</span></code>, but the importance of referencing specific index positions for coordinates will become apparent soon enough.</p>
+<p>Loosely speaking, you could say that, for curves and snowflakes, we used a <em>vector-based</em> approach: the turtle’s last known position and angle provided the starting point for the next move’s direction and angle. Here we are using a <em>raster-based</em> approach, where everything is based on points on a grid. Both approaches have their merits, and it’s certainly possible to write code for these and other fractals using either method.</p>
+</div>
+<div class="section" id="midpoints-of-midpoints">
+<h2>Midpoints of midpoints<a class="headerlink" href="#midpoints-of-midpoints" title="Permalink to this headline">¶</a></h2>
+<p>Now that we have our order 0 fractal, let’s think about how we can start subdividing it. Each side of our equilateral triangle has a length of 1000, so our next order should be three triangles, each having sides of length 500. But since we’re not using vectors, we don’t have a statement like <code class="docutils literal notranslate"><span class="pre">t.forward(length)</span></code> that we can convert to <code class="docutils literal notranslate"><span class="pre">t.forward(length</span> <span class="pre">//</span> <span class="pre">2)</span></code>. A raster approach means we have to do some simple arithmetic on the list of coordinates that is <code class="docutils literal notranslate"><span class="pre">p</span></code>. For example, converting our original triangle to one that has the same starting vertex but only half the length looks like this:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>p = [[-500, -400], [0, 500], [500, -400]]
+q = [[-500, -400], [-250, 50], [0, -400]]
+</pre></div>
+</div>
+<p>Our vertex stays the same (<code class="docutils literal notranslate"><span class="pre">p[0]</span> <span class="pre">==</span> <span class="pre">q[0]</span></code>), but the other two coordinates change. We’re now getting the midpoint between <code class="docutils literal notranslate"><span class="pre">p[0]</span></code> and <code class="docutils literal notranslate"><span class="pre">p[1]</span></code>, and the midpoint between <code class="docutils literal notranslate"><span class="pre">p[0]</span></code> and <code class="docutils literal notranslate"><span class="pre">p[2]</span></code>, and making those our new endpoints for <code class="docutils literal notranslate"><span class="pre">q[1]</span></code> and <code class="docutils literal notranslate"><span class="pre">q[2]</span></code>. Mathematically, the formula for computing the midpoint <em>(x’, y’)</em> of coordinates <em>(x1, y1)</em> and <em>(x2, y2)</em> is:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>x&#39; = (x1 + x2) / 2
+y&#39; = (y1 + y2) / 2
+</pre></div>
+</div>
+<p>Using the above example,</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>x&#39; = (-500 + 0)   / 2 = -250
+y&#39; = (-400 + 500) / 2 =   50
+</pre></div>
+</div>
+<p>So now we know our first midpoint coordinate is <code class="docutils literal notranslate"><span class="pre">(-250,</span> <span class="pre">50)</span></code>. By the same logic, our second is <code class="docutils literal notranslate"><span class="pre">(0,</span> <span class="pre">-400)</span></code>. We can abstract up a level to say that, for any pair of coordinates <code class="docutils literal notranslate"><span class="pre">p1,</span> <span class="pre">p2</span></code>, the midpoint is:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>((p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2)
+</pre></div>
+</div>
+<p>We aren’t interested in explicitly defining triangles, as we were with <code class="docutils literal notranslate"><span class="pre">koch()</span></code>. Rather, the series of coordinates that we specify happen to <em>make</em> triangles. The end result may look the same, but by thinking about this in terms of coordinates and midpoints, we’ve actually vastly simplified the problem. This creates a lot of flexibility, since we just need to get the right midpoints, computed from the right vertices, and arranged in the right order.</p>
+<p>By the same token, if we wanted the next-smaller triangle <code class="docutils literal notranslate"><span class="pre">r</span></code> to share the same vertex as <code class="docutils literal notranslate"><span class="pre">p</span></code> and <code class="docutils literal notranslate"><span class="pre">q</span></code>, we would apply the formula to <code class="docutils literal notranslate"><span class="pre">q</span></code>’s other two corners. So far, here are our three triangles:</p>
+<div class="figure align-center" id="id2">
+<a class="reference internal image-reference" href="_images/s7.jpg"><img alt="alternate text" src="_images/s7.jpg" style="width: 443.0px; height: 314.5px;" /></a>
+<p class="caption"><span class="caption-text">Figure 2. Three triangles built from a common vertex</span></p>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>p = [[-500, -400], [0, 500],      [500, -400]]
+q = [[-500, -400], [-250, 50],      [0, -400]]
+r = [[-500, -400], [-375, -175], [-250, -400]]
+</pre></div>
+</div>
+<p>You may be getting the sense that we will be computing midpoints quite often, so this should probably be its own function that we can call at any time, with the function’s parameters being whatever pair of coordinates whose midpoint we need to compute at any given moment:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">mid</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">((</span><span class="n">p1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">p2</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="p">(</span><span class="n">p1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">p2</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Making midpoints - and midpoints of midpoints - has a distinctly recursive smell to it. But before we get to the recursive case, let’s look at what it will have to address. For instance, to complete our order 1 Sierpinski triangle, we have to draw the remaining two triangles within the confines of our order 0 triangle.</p>
+<p>To do that we’ll start <em>A</em> at the bottom left (<code class="docutils literal notranslate"><span class="pre">(-500,</span> <span class="pre">-400)</span></code>) to make the triangle <em>(A, x, y)</em>. Then we’ll shift the vertex to <em>B</em> (<code class="docutils literal notranslate"><span class="pre">(0,</span> <span class="pre">500)</span></code>) to make triangle <em>(B, x, z)</em>. Finally, triangle <em>(C, z, y)</em> will be created from point <em>C</em>, at coordinates (<code class="docutils literal notranslate"><span class="pre">(500,</span> <span class="pre">-400)</span></code>). For each of these, we’ll use the <code class="docutils literal notranslate"><span class="pre">mid()</span></code>-generated coordinates, <em>x, y, z</em>. Any recursive solution will have to place us at these points. For further orders, we’ll need to place our starting vertices not just at <em>A, B, C</em>, but at <em>x, y, z</em>, and many other points.</p>
+<div class="figure align-center" id="id3">
+<a class="reference internal image-reference" href="_images/s6.jpg"><img alt="alternate text" src="_images/s6.jpg" style="width: 350.5px; height: 308.0px;" /></a>
+<p class="caption"><span class="caption-text">Figure 3. Order of vertices from which midpoints are computed</span></p>
+</div>
+<p><strong>Question:</strong> Can you think of a reason why choosing <em>A, B, C</em> as the starting vertices is preferable to choosing something like <em>A, x, y</em>, ie, the bottom left-hand corner of every triangle?</p>
+</div>
+<div class="section" id="determining-the-order-of-drawing">
+<h2>Determining the order of drawing<a class="headerlink" href="#determining-the-order-of-drawing" title="Permalink to this headline">¶</a></h2>
+<p>Another organizing principle for our recursive solution is that of the orders themselves. If we know that order 0 is a single triangle with sides of length <em>n</em>, then order 1 will have 3 triangles with sides of length <em>n / 2</em>, and order 2 will have 9 triangles with sides of length <em>n / 2 / 2</em>, etc.</p>
+<p>So we’ll need a variable <code class="docutils literal notranslate"><span class="pre">order</span></code> that tells us how deep into recursion we need to go. Decrementing/incrementing <code class="docutils literal notranslate"><span class="pre">order</span></code> by 1 controls the depth at which we’re operating. By corollary, if <code class="docutils literal notranslate"><span class="pre">main()</span></code> defines <code class="docutils literal notranslate"><span class="pre">order</span></code> as <code class="docutils literal notranslate"><span class="pre">0</span></code> then we just go straight to the base case, which is already represented by <code class="docutils literal notranslate"><span class="pre">draw()</span></code> and the starting list of coordinates, <code class="docutils literal notranslate"><span class="pre">p</span></code>.</p>
+<p>We learned from our Koch snowflake code that it’s a good idea to keep the recursive mechanism in a separate function from the function that draws the actual triangle, so let’s stick to that and keep <code class="docutils literal notranslate"><span class="pre">draw()</span></code> as it is. We’ll create a new function, <code class="docutils literal notranslate"><span class="pre">sierpinski()</span></code>, that will call <code class="docutils literal notranslate"><span class="pre">draw()</span></code> when needed. As we get into more advanced implementations of recursion, you’ll see that keeping the recursing function separate from the computing function is a common design decision.</p>
+<p>This is what our code looks like so far:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">turtle</span>
+
+<span class="k">def</span> <span class="nf">draw</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">fillcolor</span><span class="p">(</span><span class="s1">&#39;orange&#39;</span><span class="p">)</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">up</span><span class="p">()</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">goto</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">down</span><span class="p">()</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">begin_fill</span><span class="p">()</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">goto</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">goto</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">goto</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">end_fill</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">mid</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">((</span><span class="n">p1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">p2</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="p">(</span><span class="n">p1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">p2</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">sierpinski</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+    <span class="n">draw</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">order</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># insert recursive magic here</span>
+        <span class="c1"># probably involving &#39;sierpinski(t, order - 1, p)&#39;</span>
+        <span class="c1"># or something like that</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">turtle</span><span class="o">.</span><span class="n">Turtle</span><span class="p">()</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">speed</span><span class="p">()</span>
+    <span class="n">wn</span> <span class="o">=</span> <span class="n">turtle</span><span class="o">.</span><span class="n">Screen</span><span class="p">()</span>
+    <span class="n">wn</span><span class="o">.</span><span class="n">bgcolor</span><span class="p">(</span><span class="s2">&quot;black&quot;</span><span class="p">)</span>
+
+    <span class="n">order</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="p">[[</span><span class="o">-</span><span class="mi">500</span><span class="p">,</span> <span class="o">-</span><span class="mi">400</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">500</span><span class="p">],</span> <span class="p">[</span><span class="mi">500</span><span class="p">,</span> <span class="o">-</span><span class="mi">400</span><span class="p">]]</span>
+
+    <span class="n">sierpinski</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+    <span class="n">wn</span><span class="o">.</span><span class="n">exitonclick</span><span class="p">()</span>
+
+<span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This seems a bit underwhelming, since we’re not doing much more than drawing the 0 order fractal. But I want to bring attention to the structure being set up here. Looking at <code class="docutils literal notranslate"><span class="pre">main()</span></code>, you’ll notice that the call to <code class="docutils literal notranslate"><span class="pre">draw()</span></code> has been replaced by a call to <code class="docutils literal notranslate"><span class="pre">sierpinski()</span></code>. This makes sense, since we want to first evaluate how much recursion, if any, is needed before we start drawing, which is precisely what <code class="docutils literal notranslate"><span class="pre">sierpinski()</span></code> will handle. Therefore we’ll pass an additional argument <code class="docutils literal notranslate"><span class="pre">order</span></code> to <code class="docutils literal notranslate"><span class="pre">sierpinski()</span></code>, which I’ve set to <code class="docutils literal notranslate"><span class="pre">0</span></code> for the moment.</p>
+<p>There is also something unusual going on with the base case. Most algorithms we’ve seen so far have provided usable results only upon reaching the base case - usually after we decremented some variable to 1 or 0, or met some truth condition. Sometimes we just wanted what the base case gave us (<code class="docutils literal notranslate"><span class="pre">True</span></code>, in the case of <code class="docutils literal notranslate"><span class="pre">pal()</span></code>, or <code class="docutils literal notranslate"><span class="pre">a</span></code> in the case of <code class="docutils literal notranslate"><span class="pre">gcdRecur()</span></code>). With <code class="docutils literal notranslate"><span class="pre">koch()</span></code> we only drew a segment when we reached the base case, because it was at the base case that we had the correctly subdivided length of line. But mostly, we were interested in the final result provided to us at the conclusion of the recusrsive cascade.</p>
+<p>Here, we draw the 0 order fractal straight away, regardless of the value that is bound to <code class="docutils literal notranslate"><span class="pre">order</span></code>. This is because we <em>want</em> to represent the order 0 triangle first. If we didn’t, we wouldn’t have coloring for the ‘empty triangle’ in the middle. And if we waited until the end of the program, it would color over everything we’d done until that point. In fact, if we started by drawing the highest order set of triangles first, then each lower order would graphically ‘overwrite’ the previous, until we got to order 0, which would overwrite everything.</p>
+<p>Consider what this means for the general order in which we want to draw our triangles. We can’t draw order 1 until we’ve drawn order 0, so by the same reasoning we can’t draw order 2 until we’ve drawn order 1, etc. This seems backwards from how we’ve been using recursion so far: we drew (or computed) the highest <code class="docutils literal notranslate"><span class="pre">order</span></code> (or <code class="docutils literal notranslate"><span class="pre">n</span></code>) by reaching the base case and making <em>all</em> the subsequent post-recursive computations. With the exception of <code class="docutils literal notranslate"><span class="pre">mergeSort()</span></code> we didn’t care about any of recursion’s intermediate outputs, only the final result.</p>
+<p>If we want to draw a triangle immediately, this means we have to depart from our usual template:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">fn</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>    <span class="c1">#or some other minimum</span>
+        <span class="k">return</span> <span class="n">n</span>
+    <span class="k">else</span><span class="p">:</span>
+       <span class="k">return</span> <span class="n">fn</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="c1"># with other computation</span>
+</pre></div>
+</div>
+<p>The need to call <code class="docutils literal notranslate"><span class="pre">draw()</span></code> right off the bat means it can’t sit inside an <code class="docutils literal notranslate"><span class="pre">if</span></code> block:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">sierpinski</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+    <span class="n">draw</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">order</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># make recursive call with sierpinski(t, order - 1, p)</span>
+</pre></div>
+</div>
+<p>If our design is valid, then each recursive call will itself trigger <code class="docutils literal notranslate"><span class="pre">draw()</span></code> as its first statement. Furthermore, this means that, for orders other than 0, <code class="docutils literal notranslate"><span class="pre">p</span></code> has to represent the right coordinates. This is where <code class="docutils literal notranslate"><span class="pre">mid()</span></code> comes into play.</p>
+<p>Recall Figure 2, which showed three triangles of decreasing size built from a common vertex, <code class="docutils literal notranslate"><span class="pre">p[0]</span></code>. We can represent this recursively as:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">mid</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">((</span><span class="n">p1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">p2</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="p">(</span><span class="n">p1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">p2</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">sierpinski</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+    <span class="n">draw</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">order</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">sierpinski</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">mid</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">mid</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">])])</span>
+</pre></div>
+</div>
+<p>In pseudocode, we might write this as follows:</p>
+<ol class="arabic simple">
+<li>Draw the base case</li>
+<li>Draw the first triangle of the next order</li>
+<li>Keep drawing the first triangle of the next order until <code class="docutils literal notranslate"><span class="pre">order</span> <span class="pre">==</span> <span class="pre">0</span></code></li>
+</ol>
+<p>This is a good start. And you can see that we can do the same at the other two vertices of the 0 order fractal, simply by re-arranging the coordinates we want to pass to <code class="docutils literal notranslate"><span class="pre">mid()</span></code>:</p>
+<div class="figure align-center" id="id4">
+<a class="reference internal image-reference" href="_images/s2.jpg"><img alt="alternate text" src="_images/s2.jpg" style="width: 629.6px; height: 151.6px;" /></a>
+<p class="caption"><span class="caption-text">Figure 4. Computing midpoints based on <code class="docutils literal notranslate"><span class="pre">p</span></code></span></p>
+</div>
+<p>If we translate these next two triangle calculations into code, we’ll have:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">sierpinski</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+    <span class="n">draw</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">order</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">sierpinski</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">mid</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">mid</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">])])</span>
+        <span class="n">sierpinski</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">mid</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">mid</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">])])</span>
+        <span class="n">sierpinski</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">mid</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">mid</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">])])</span>
+</pre></div>
+</div>
+<p>Running this code for order 1 gives us the correct drawing.</p>
+<p>At this point, you may think that we only have a partial solution: a series of triangles of decreasing size, with each series anchored at one of the three vertices of the base case triangle. In other words, there will be a lot of triangles missing. However, if you run it for, say, <code class="docutils literal notranslate"><span class="pre">order</span> <span class="pre">==</span> <span class="pre">4</span></code>, you’ll see that we have created a complete solution. Why is this?</p>
+</div>
+<div class="section" id="stepping-through-the-code">
+<h2>Stepping through the code<a class="headerlink" href="#stepping-through-the-code" title="Permalink to this headline">¶</a></h2>
+<p>Here’s our final code for an order 2 triangle. I’ve included a bit that will be very clarifying: a list of colors that will fill each triangle based on the order we’re in at the moment.</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">turtle</span>
+
+<span class="k">def</span> <span class="nf">draw</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">fillcolor</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">up</span><span class="p">()</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">goto</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">down</span><span class="p">()</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">begin_fill</span><span class="p">()</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">goto</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">goto</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">goto</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">end_fill</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">mid</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">((</span><span class="n">p1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">p2</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="p">(</span><span class="n">p1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">p2</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">sierpinski</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+    <span class="n">colormap</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="s1">&#39;orange&#39;</span><span class="p">,</span> <span class="s1">&#39;yellow&#39;</span><span class="p">,</span> <span class="s1">&#39;green&#39;</span><span class="p">,</span> <span class="s1">&#39;blue&#39;</span><span class="p">,</span> <span class="s1">&#39;violet&#39;</span><span class="p">]</span>
+    <span class="n">draw</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">colormap</span><span class="p">[</span><span class="n">order</span><span class="p">],</span> <span class="n">p</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">order</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">sierpinski</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">mid</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">mid</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">])])</span>
+        <span class="n">sierpinski</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">mid</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">mid</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">])])</span>
+        <span class="n">sierpinski</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">mid</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">mid</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">])])</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">turtle</span><span class="o">.</span><span class="n">Turtle</span><span class="p">()</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">speed</span><span class="p">()</span>
+    <span class="n">wn</span> <span class="o">=</span> <span class="n">turtle</span><span class="o">.</span><span class="n">Screen</span><span class="p">()</span>
+    <span class="n">wn</span><span class="o">.</span><span class="n">bgcolor</span><span class="p">(</span><span class="s2">&quot;black&quot;</span><span class="p">)</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="p">[[</span><span class="o">-</span><span class="mi">500</span><span class="p">,</span> <span class="o">-</span><span class="mi">400</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">500</span><span class="p">],</span> <span class="p">[</span><span class="mi">500</span><span class="p">,</span> <span class="o">-</span><span class="mi">400</span><span class="p">]]</span>
+    <span class="n">sierpinski</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+    <span class="n">wn</span><span class="o">.</span><span class="n">exitonclick</span><span class="p">()</span>
+
+<span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The recursive calls may seem a bit intimidating, but all we are doing is computing appropriate coordinates for each triangle in a given order. <code class="docutils literal notranslate"><span class="pre">draw()</span></code> always jumps to and draws the set of coordinates <code class="docutils literal notranslate"><span class="pre">p</span></code> that is correct for that moment. If you’re feeling skeptical, here is a print-traced version of the code that will show you the outputs while the drawing happens:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">turtle</span>
+
+<span class="n">call</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="k">def</span> <span class="nf">draw</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">fillcolor</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">up</span><span class="p">()</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">goto</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">down</span><span class="p">()</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">begin_fill</span><span class="p">()</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">goto</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">goto</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">goto</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">end_fill</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">mid</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">((</span><span class="n">p1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">p2</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="p">(</span><span class="n">p1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">p2</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">sierpinski</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">call</span>
+    <span class="n">call</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">call is&#39;</span><span class="p">,</span> <span class="n">call</span><span class="p">)</span>
+    <span class="n">colormap</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="s1">&#39;orange&#39;</span><span class="p">,</span> <span class="s1">&#39;yellow&#39;</span><span class="p">,</span> <span class="s1">&#39;green&#39;</span><span class="p">,</span> <span class="s1">&#39;blue&#39;</span><span class="p">,</span> <span class="s1">&#39;violet&#39;</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  draw&#39;</span><span class="p">,</span> <span class="n">colormap</span><span class="p">[</span><span class="n">order</span><span class="p">],</span> <span class="s1">&#39;at&#39;</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+    <span class="n">draw</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">colormap</span><span class="p">[</span><span class="n">order</span><span class="p">],</span> <span class="n">p</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;     outer call done, order =&#39;</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">order</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">sierpinski</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">mid</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">mid</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">])])</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;       1st recursive call done, order =&#39;</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
+        <span class="n">sierpinski</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">mid</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">mid</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">])])</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;       2nd recursive call done, order =&#39;</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
+        <span class="n">sierpinski</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">mid</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">mid</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">])])</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;       3rd recursive call done, order =&#39;</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">turtle</span><span class="o">.</span><span class="n">Turtle</span><span class="p">()</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">speed</span><span class="p">()</span>
+    <span class="n">wn</span> <span class="o">=</span> <span class="n">turtle</span><span class="o">.</span><span class="n">Screen</span><span class="p">()</span>
+    <span class="n">wn</span><span class="o">.</span><span class="n">bgcolor</span><span class="p">(</span><span class="s2">&quot;black&quot;</span><span class="p">)</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="p">[[</span><span class="o">-</span><span class="mi">500</span><span class="p">,</span> <span class="o">-</span><span class="mi">400</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">500</span><span class="p">],</span> <span class="p">[</span><span class="mi">500</span><span class="p">,</span> <span class="o">-</span><span class="mi">400</span><span class="p">]]</span>
+    <span class="n">sierpinski</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+    <span class="n">wn</span><span class="o">.</span><span class="n">exitonclick</span><span class="p">()</span>
+
+<span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>You may want to run the print-trace program and consult the output as we step through the code. Keep in mind that this isn’t any more difficult to trace through than any other code using multiple recursive calls - all the heuristics that we established with prior algorithms still hold. The added advantage with the Sierpinski triangle is seeing it drawn in real time, so mapping the recursion to the code will be easier - plus the final result is color-coded!</p>
+<p>A word on the recursive calls: if each triangle must fit three unique triangles within it, then we’ll clearly need three instances where <code class="docutils literal notranslate"><span class="pre">sierpinski()</span></code> calls itself. Of course, once we have specified three recursive calls within our function, this means that we will have three calls every time the function recurses.</p>
+<p>As with any function with multiple recursive calls, the most important thing to remember is that the first recursive call continues recursing <em>that first call</em> until it reaches the ‘bottom’ or ‘leaf’, in this case when <code class="docutils literal notranslate"><span class="pre">order</span> <span class="pre">==</span> <span class="pre">0</span></code>. Put another way, it is recursion executing in its usual depth-first fashion. Put a third way, this initial, depth-first run is <em>exactly</em> what Figure 2 represents.</p>
+<p>In terms of our colors, we have the following:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">order</span> <span class="o">==</span> <span class="mi">2</span> <span class="o">==</span> <span class="s1">&#39;yellow&#39;</span>
+<span class="n">order</span> <span class="o">==</span> <span class="mi">1</span> <span class="o">==</span> <span class="s1">&#39;orange&#39;</span>
+<span class="n">order</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">==</span> <span class="s1">&#39;red&#39;</span>
+</pre></div>
+</div>
+<p>This is the correct order of drawing, since as I pointed out above, the base case always gets drawn first. And indeed, the first triangle is yellow, with a length of 1000 for each side.</p>
+<p>Once we’ve drawn the first triangle, we pass into the <code class="docutils literal notranslate"><span class="pre">if</span></code> block, since <code class="docutils literal notranslate"><span class="pre">order</span> <span class="pre">==</span> <span class="pre">2</span></code>, and encounter the first recursive call:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sierpinski</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">mid</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">mid</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">])])</span>
+</pre></div>
+</div>
+<p>This call keeps the bottom left vertex as-is (<code class="docutils literal notranslate"><span class="pre">p[0]</span></code>) and calls <code class="docutils literal notranslate"><span class="pre">mid()</span></code> twice to get the new length, <code class="docutils literal notranslate"><span class="pre">500</span></code>, that is appropriate to an order 1 triangle. However, we still aren’t done with this call, as <code class="docutils literal notranslate"><span class="pre">order</span> <span class="pre">!=</span> <span class="pre">0</span></code>. So one more time around with the same call yields a red triangle, still with the same starting vertex, but this time with a length of <code class="docutils literal notranslate"><span class="pre">250</span></code>, as <code class="docutils literal notranslate"><span class="pre">p[1]</span></code> and <code class="docutils literal notranslate"><span class="pre">p[2]</span></code> in the ‘orange order’ have once again been modified to what’s needed for the ‘red order’:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>p at yellow: [[-500, -400], [0, 500], [500, -400]]
+p at orange: [[-500, -400], (-250.0, 50.0), (0.0, -400.0)]
+p at red:    [[-500, -400], (-375.0, -175.0), (-250.0, -400.0)]
+</pre></div>
+</div>
+<p>So far we’ve replicated the original series of three triangles that we had with <em>p, q, r</em> in Figure 2 above, but as we saw, the code is a complete solution, so let’s keep going.</p>
+<p>Also, keep in mind that all of these calls are opening and closing frames, based on where we are in the program execution. Seeing the call tree should make this more clear:</p>
+<div class="figure align-center" id="id5">
+<a class="reference internal image-reference" href="_images/s1.jpg"><img alt="alternate text" src="_images/s1.jpg" style="width: 640.8px; height: 300.9px;" /></a>
+<p class="caption"><span class="caption-text">Figure 5. Call tree for an order 2 Sierpinski triangle</span></p>
+</div>
+<p>This further helps to discern the order of drawing. Since the recursive call whose triangle is anchored at <code class="docutils literal notranslate"><span class="pre">p[0]</span></code> is first, we will first see all possible triangles drawn from the perspective of <code class="docutils literal notranslate"><span class="pre">p[0]</span></code> at coordinates <code class="docutils literal notranslate"><span class="pre">(-500,</span> <span class="pre">-400)</span></code>. This is equivalent to the first, left-most depth-first traversal of the call tree. This is represented in calls 1-3 in Figure 6.</p>
+<p>But since frame 2 is at <code class="docutils literal notranslate"><span class="pre">order</span> <span class="pre">==</span> <span class="pre">1</span></code> we can compute the remaining two recursive calls, that is, the remaining two red triangles at <code class="docutils literal notranslate"><span class="pre">order</span> <span class="pre">==</span> <span class="pre">0</span></code>, whose starting vertices are at <code class="docutils literal notranslate"><span class="pre">p[1]</span></code> and <code class="docutils literal notranslate"><span class="pre">p[2]</span></code>, respectively. So now we have calls 4-5 sorted out as well.</p>
+<div class="figure align-center" id="id6">
+<a class="reference internal image-reference" href="_images/s3.jpg"><img alt="alternate text" src="_images/s3.jpg" style="width: 735.5px; height: 298.5px;" /></a>
+<p class="caption"><span class="caption-text">Figure 6. Calls 1-3 and 4-5</span></p>
+</div>
+<p>Having computed everything for frame 2, we return to frame 1, where we move on to the second recursive call, <code class="docutils literal notranslate"><span class="pre">p[1]</span></code>, which is the vertex at the apex of the triangle. We don’t have anything to draw in frame 1 (we already did that, as we’ve now passed into the <code class="docutils literal notranslate"><span class="pre">if</span></code> block), so we open frame 6, draw the orange triangle and, in frame 7, the smaller red triangle, where both triangles are using <code class="docutils literal notranslate"><span class="pre">p[1]</span> <span class="pre">==</span> <span class="pre">(0,</span> <span class="pre">500)</span></code>. This takes care of calls 6-7.</p>
+<p>For calls 8-9, we repeat the same logic as above: since frame 6 is at <code class="docutils literal notranslate"><span class="pre">order</span> <span class="pre">==</span> <span class="pre">1</span></code>, we compute the remaining two red triangles, and return to frame 1 by way of frame 6:</p>
+<div class="figure align-center" id="id7">
+<a class="reference internal image-reference" href="_images/s4.jpg"><img alt="alternate text" src="_images/s4.jpg" style="width: 675.5px; height: 287.0px;" /></a>
+<p class="caption"><span class="caption-text">Figure 7. Calls 6-7 and 8-9</span></p>
+</div>
+<p>At the final recursive call <code class="docutils literal notranslate"><span class="pre">p[2]</span></code> in frame 1, all we have left is to fill in the bottom right of the base case triangle. By now you can see the pattern: in frames 10 and 11 <code class="docutils literal notranslate"><span class="pre">p[2]</span></code> is the starting vertex, providing us with calls 10-11. Finally, we add the last two red triangles, <code class="docutils literal notranslate"><span class="pre">p[1]</span></code> followed by <code class="docutils literal notranslate"><span class="pre">p[0]</span></code>, for calls 12-13:</p>
+<div class="figure align-center" id="id8">
+<a class="reference internal image-reference" href="_images/s5.jpg"><img alt="alternate text" src="_images/s5.jpg" style="width: 678.5px; height: 313.0px;" /></a>
+<p class="caption"><span class="caption-text">Figure 8. Calls 10-11 and 12-13</span></p>
+</div>
+<p>The important bit in all of this is being able to follow the order of recursive calls, which, as I’ve said, is exactly the same as any other function that uses multiple recursion. I’ve omitted some discussion about how the various coordinates get passed and re-computed, but you should take a moment to trace through how this works, as it’s very elegant.</p>
+</div>
+<div class="section" id="heuristics-and-exercises">
+<h2>Heuristics and Exercises<a class="headerlink" href="#heuristics-and-exercises" title="Permalink to this headline">¶</a></h2>
+<p>♦ In the case of the Sierpinski triangle, we wanted to ensure that lower-order drawing didn’t obscure higher-level triangles. To do this, every time <code class="docutils literal notranslate"><span class="pre">sierpinski()</span></code> called itself, <code class="docutils literal notranslate"><span class="pre">draw()</span></code> would be the first statement executed. This meant that, at the leaf level, only the base case was triggered, and the recursive calls were skipped.</p>
+<p>♦ By keeping the recursing function separate from the computing function, you can use ongoing results of recursion as inputs for further computation. We used this technique with <code class="docutils literal notranslate"><span class="pre">sierpinski()</span></code> to ‘outsource’ the drawing of triangles, just as <code class="docutils literal notranslate"><span class="pre">mergeSort()</span></code> ‘outsourced’ its merging/sorting needs to <code class="docutils literal notranslate"><span class="pre">merge()</span></code>.</p>
+<p>♦ If you can write the base case and the minimally recursive case (ie, one recursion), you may well have solved the problem for any recursive depth.</p>
+<p><strong>Exercise:</strong> Implement a recursive solution for the Sierpinski triangle using a vector-based approach. What parts of the raster-based code can you retain?</p>
+<p><strong>Exercise:</strong> The Sierpinski carpet is a variation that takes a square as its base case. Each square is divided into nine equal squares, and only the central square is preserved. Write a recursive implementation for the Sierpinski carpet using a raster-based approach.</p>
+<p><strong>Credit:</strong> Some of this material adapted from Chapter 5.8 of <a class="reference external" href="https://runestone.academy/runestone/books/published/pythonds/Recursion/pythondsSierpinskiTriangle.html">Problem Solving with Algorithms and Data Structures using Python</a></p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The Sierpinski Triangle</a><ul>
+<li><a class="reference internal" href="#setting-up-the-problem">Setting up the problem</a></li>
+<li><a class="reference internal" href="#midpoints-of-midpoints">Midpoints of midpoints</a></li>
+<li><a class="reference internal" href="#determining-the-order-of-drawing">Determining the order of drawing</a></li>
+<li><a class="reference internal" href="#stepping-through-the-code">Stepping through the code</a></li>
+<li><a class="reference internal" href="#heuristics-and-exercises">Heuristics and Exercises</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="13 Koch Curves.html"
+                        title="previous chapter">Recursion and Self-Similarity: Koch Curves</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="15 L-System.html"
+                        title="next chapter">Lindenmayer Systems</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/14 Sierpinski.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="15 L-System.html" title="Lindenmayer Systems"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="13 Koch Curves.html" title="Recursion and Self-Similarity: Koch Curves"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Understanding Recursion Using Python 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, panopticonopolis.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
+    </div>
+  </body>
+</html>

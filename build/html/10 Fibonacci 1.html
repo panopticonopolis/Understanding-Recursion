@@ -1,0 +1,263 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Multiple Recursive Calls: Fibonacci Sequence, Part 1 &#8212; Understanding Recursion Using Python 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Expanding a Series: Pascal’s Triangle" href="09 Pascal.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="09 Pascal.html" title="Expanding a Series: Pascal’s Triangle"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Understanding Recursion Using Python 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="multiple-recursive-calls-fibonacci-sequence-part-1">
+<span id="fibonacci-1"></span><h1>Multiple Recursive Calls: Fibonacci Sequence, Part 1<a class="headerlink" href="#multiple-recursive-calls-fibonacci-sequence-part-1" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introducing-multiple-recursive-calls">
+<h2>Introducing multiple recursive calls<a class="headerlink" href="#introducing-multiple-recursive-calls" title="Permalink to this headline">¶</a></h2>
+<p>Along with factorials and the Towers of Hanoi, the Fibonacci sequence is one of the classic introductions to recursion. I’ve chosen to include it at a significantly later point in this guide, since Fibonacci has deep implications for understanding recursion, and particularly the efficiency of certain recursive algorithms. It shows that the most intuitive recursive solution may not be desirable, and will force us to look for better ways of implementing this technique.</p>
+<p>Let’s first look at the sequence itself, which is seeded with 0 and 1. Each succeeding Fibonacci number is the sum of the two previous ones. Written in the form of a list, the first ten Fibonacci numbers are:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>n       0  1  2  3  4  5  6   7   8   9
+fib(n) [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
+</pre></div>
+</div>
+<p>When we ask for <code class="docutils literal notranslate"><span class="pre">fib(n)</span></code> we are asking for the place that nth number occupies in the Fibonacci sequence, similar to if we asked for the 10th prime number, or the 6th triangular number. If we were to represent this recursively, a few things immediately stand out.</p>
+<p>The first is that, like <code class="docutils literal notranslate"><span class="pre">pascal()</span></code>, we are generating the sequence by looking backwards to retrieve earlier terms that we need to perform the computation. In fact, we need to go all the way back to the base case to be able to calculate the intermediate values.</p>
+<p>Secondly, both 0 and 1 are the seeds needed to kick off the sequence What does this imply for a recursive solution? We’ve seen something similar with our function to determine palindromicity: for <code class="docutils literal notranslate"><span class="pre">pal()</span></code>, we had to account for the fact that any string either has an even or an odd number of characters, which meant we needed two base cases. Likewise, <code class="docutils literal notranslate"><span class="pre">fib()</span></code> has to account for 0 and 1:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fib</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">n</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># some code</span>
+</pre></div>
+</div>
+<p>We return <code class="docutils literal notranslate"><span class="pre">n</span></code> here because if we want <code class="docutils literal notranslate"><span class="pre">fib(0)</span></code>, we can’t very well return 1, can we? (We can also write <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">n</span> <span class="pre">&lt;</span> <span class="pre">2:</span> <span class="pre">return</span> <span class="pre">n</span></code>, which is a bit more compact.) It’s true that, as we decrement <code class="docutils literal notranslate"><span class="pre">fib(n)</span></code>, we will always return 1, but we’ll also hit <code class="docutils literal notranslate"><span class="pre">fib(0)</span></code> far more often than you think, as we’ll see.</p>
+<p>When considering the recursive case, let’s go back to the way the sequence is generated. In terms of any number <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">&gt;</span> <span class="pre">2</span></code>, another way to say “add the previous two numbers” is “add n - 1 with n - 2”. In terms of generalizing this to the function, we can write:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>fib(n) == fib(n - 1) + fib(n - 2)
+</pre></div>
+</div>
+<p>In other words, we need to consult the sequence twice in order to get to <code class="docutils literal notranslate"><span class="pre">n</span></code>. This seems fairly straightforward if we are calculating <code class="docutils literal notranslate"><span class="pre">fib(2)</span></code>: we just add up both base cases and return the result, which is 1.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>n       0  1      0  1  2
+fib(n) [0, 1] —&gt; [0, 1, 1]
+</pre></div>
+</div>
+<p>Adding the next term in a sequence is always easy if you have the formula and all the preceding values. But what if we wanted to know <code class="docutils literal notranslate"><span class="pre">fib(3)</span></code>?</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>n       0  1      0  1  2      3
+fib(n) [0, 1] —&gt; [0, 1, ?, fib(3)]
+</pre></div>
+</div>
+<p>Working from our ‘(n - 1) + (n - 2)’ formula, to get <code class="docutils literal notranslate"><span class="pre">fib(3)</span></code> we first need to get <code class="docutils literal notranslate"><span class="pre">fib(2)</span></code> so we can add it to <code class="docutils literal notranslate"><span class="pre">fib(1)</span></code>, which we already know is 1. And to get <code class="docutils literal notranslate"><span class="pre">fib(2)</span></code> we’ll need to invoke <code class="docutils literal notranslate"><span class="pre">fib(1)</span></code> and <code class="docutils literal notranslate"><span class="pre">fib(0)</span></code>, which we know are 1 and 0. This need to work backwards to the base case and then move forwards again suggests that the Fibonacci sequence lends itself to recursion. In fact, there’s not much more to the code than what we’ve just reasoned through:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fib</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">n</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">fib</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">fib</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Recursively speaking, we go back to the base case in order to get the value we are sure of, then add up all the returned values on the trip back through the call stack. Since all of the computation happens at the moment of the recursive calls, it’s appropriate to put <code class="docutils literal notranslate"><span class="pre">fib(n</span> <span class="pre">-</span> <span class="pre">1)</span> <span class="pre">+</span> <span class="pre">fib(n</span> <span class="pre">-</span> <span class="pre">2)</span></code> in the return statement. It’s just a matter of backfilling the sequence until we have all of the terms needed to derive the desired nth number.</p>
+<p>At first glance this solution looks entirely reasonable. But a closer look at the return statement reveals quite a devil in the details. Let’s map out what this might look like for <code class="docutils literal notranslate"><span class="pre">fib(3)</span></code> using our usual ‘talking algorithm’ approach:</p>
+<ol class="arabic simple">
+<li>Global frame: Hey <code class="docutils literal notranslate"><span class="pre">fib()</span></code>, compute <code class="docutils literal notranslate"><span class="pre">fib(3)</span></code> for me.</li>
+<li>Frame 1 of <code class="docutils literal notranslate"><span class="pre">fib()</span></code>: I don’t know what <code class="docutils literal notranslate"><span class="pre">fib(3)</span></code> is because first I need to compute <code class="docutils literal notranslate"><span class="pre">fib(2)</span></code> and add it to <code class="docutils literal notranslate"><span class="pre">fib(1)</span></code> (<code class="docutils literal notranslate"><span class="pre">return</span> <span class="pre">fib(2)</span> <span class="pre">+</span> <span class="pre">fib(1)</span></code>). Since <code class="docutils literal notranslate"><span class="pre">fib(2)</span></code> is first, let me evaluate it:</li>
+<li>Frame 2 of <code class="docutils literal notranslate"><span class="pre">fib()</span></code>: I don’t know what <code class="docutils literal notranslate"><span class="pre">fib(2)</span></code> is because I first need to compute <code class="docutils literal notranslate"><span class="pre">fib(1)</span></code> and add it to <code class="docutils literal notranslate"><span class="pre">fib(0)</span></code>: <code class="docutils literal notranslate"><span class="pre">return</span> <span class="pre">fib(1)</span> <span class="pre">+</span> <span class="pre">fib(0)</span></code>. Since <code class="docutils literal notranslate"><span class="pre">fib(1)</span></code> comes first, let me evaluate it:</li>
+<li>Frame 3 of <code class="docutils literal notranslate"><span class="pre">fib()</span></code>: I know that <code class="docutils literal notranslate"><span class="pre">fib(1)</span> <span class="pre">==</span> <span class="pre">1</span></code>, since it’s a base case, so I’ll return the result as <code class="docutils literal notranslate"><span class="pre">1</span></code>. Closing frame 3.</li>
+<li>Frame 2 of <code class="docutils literal notranslate"><span class="pre">fib()</span></code>: Thanks. I now have: <code class="docutils literal notranslate"><span class="pre">return</span> <span class="pre">1</span> <span class="pre">+</span> <span class="pre">fib(0)</span></code>, so let’s evaluate <code class="docutils literal notranslate"><span class="pre">fib(0)</span></code>:</li>
+<li>Frame 4 of <code class="docutils literal notranslate"><span class="pre">fib()</span></code>: I know that <code class="docutils literal notranslate"><span class="pre">fib(0)</span> <span class="pre">==</span> <span class="pre">0</span></code>, since it’s a base case, so I’ll return the result as <code class="docutils literal notranslate"><span class="pre">0</span></code>. Closing frame 4.</li>
+<li>Frame 2 of <code class="docutils literal notranslate"><span class="pre">fib()</span></code>: I can now complete <code class="docutils literal notranslate"><span class="pre">return</span> <span class="pre">1</span> <span class="pre">+</span> <span class="pre">0</span></code> so I’m returning <code class="docutils literal notranslate"><span class="pre">1</span></code> to frame 1. Closing frame 2.</li>
+<li>Frame 1 of <code class="docutils literal notranslate"><span class="pre">fib()</span></code>: Ok, I now know <code class="docutils literal notranslate"><span class="pre">fib(2)</span> <span class="pre">==</span> <span class="pre">1</span></code> so I can update my return statement to <code class="docutils literal notranslate"><span class="pre">return</span> <span class="pre">1</span> <span class="pre">+</span> <span class="pre">fib(1)</span></code>, but I still can’t return the answer since I now need to evaluate <code class="docutils literal notranslate"><span class="pre">fib(1)</span></code></li>
+<li>Frame 5 of <code class="docutils literal notranslate"><span class="pre">fib()</span></code>: I know that <code class="docutils literal notranslate"><span class="pre">fib(1)</span> <span class="pre">==</span> <span class="pre">1</span></code> is a base case so I will return <code class="docutils literal notranslate"><span class="pre">1</span></code>. Frame 5 now closed.</li>
+<li>Frame 1 of <code class="docutils literal notranslate"><span class="pre">fib()</span></code>: Ok, I now know <code class="docutils literal notranslate"><span class="pre">fib(1)</span> <span class="pre">==</span> <span class="pre">1</span></code> so I can finish evaluating the return statement and close frame 1: <code class="docutils literal notranslate"><span class="pre">return</span> <span class="pre">1</span> <span class="pre">+</span> <span class="pre">1</span></code></li>
+<li>Global frame: I’ve received <code class="docutils literal notranslate"><span class="pre">2</span></code> from <code class="docutils literal notranslate"><span class="pre">fib()</span></code></li>
+</ol>
+<p>That turns out to be a lot of steps to compute the next term in the sequence. Here’s an illustration of the calls as they unfold, frame by frame.</p>
+<div class="figure align-center" id="id1">
+<a class="reference internal image-reference" href="_images/fib(3).jpg"><img alt="alternate text" src="_images/fib(3).jpg" style="width: 587.5px; height: 454.0px;" /></a>
+<p class="caption"><span class="caption-text">Figure 1. The Fibonacci call stack for <code class="docutils literal notranslate"><span class="pre">fib(3)</span></code></span></p>
+</div>
+<p>So far we’ve been illustrating the call stack from the bottom up. Just as cafeteria trays are stacked on top of one another and removed in a last-in-first-out (LIFO) order, that’s the way recursion creates and destroys frames. But multiple recursive calls introduce a branching structure that is conceptually closer to a tree. I find top-down diagrams much easier to read, because we’ve been taught to be top-down readers. So it’s much more intuitive to follow the branches until we ‘get to the bottom’ of a chain of logic. In this case, branches are successive recursive calls, and every time the base case is achieved (and the recursive cascade reversed), we record it as a leaf.</p>
+<p>An important part of reading these diagrams is the order in which computation happens. You can follow this by the frame numbering, keeping in mind that a computation completed at the base case will be returned to the calling frame, but that that frame may well initiate another branch of frame(s) in order to address the second recursive call in the return statement. So the program flow for the sequence of frames for <code class="docutils literal notranslate"><span class="pre">fib(3)</span></code> would be:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>global-1-2-3-2-4-2-1-5-1-global
+</pre></div>
+</div>
+<p>If this diagram of <code class="docutils literal notranslate"><span class="pre">fib(3)</span></code> seems a bit more complex than expected, things get noticeably worse for the next value of <code class="docutils literal notranslate"><span class="pre">n</span></code>. If we were to ask for the fourth Fibonacci number, our diagram would look like this:</p>
+<div class="figure align-center" id="id2">
+<a class="reference internal image-reference" href="_images/fib(4).jpg"><img alt="alternate text" src="_images/fib(4).jpg" style="width: 720.5px; height: 529.0px;" /></a>
+<p class="caption"><span class="caption-text">Figure 2. The Fibonacci call stack for <code class="docutils literal notranslate"><span class="pre">fib(4)</span></code></span></p>
+</div>
+<p>You can see that all the computations that make up <code class="docutils literal notranslate"><span class="pre">fib(3)</span></code> are a subset of <code class="docutils literal notranslate"><span class="pre">fib(4)</span></code>, and that all of <code class="docutils literal notranslate"><span class="pre">fib(2)</span></code> is a subset of <code class="docutils literal notranslate"><span class="pre">fib(3)</span></code>, but also that <code class="docutils literal notranslate"><span class="pre">fib(2)</span></code> shows up a second time in the right portion of <code class="docutils literal notranslate"><span class="pre">fib(4)</span></code>’s tree! From a more general perspective, you can now see the return statement embodies two separate sides of the tree, where the computation of the first (left) term must be completed before computation of the second (right) term can be undertaken:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>return fib(3) + fib(2)
+       ^^^^^^   ^^^^^^
+       left     right
+</pre></div>
+</div>
+<p>The diagram for <code class="docutils literal notranslate"><span class="pre">fib(4)</span></code> points out two important consequences of multiple recursive calls. We’re already familiar with the first one: once a function begins recursing, it continues until the base case. But in the case of multiple recursive calls, getting to the base case means splitting off and leaving the second (right) call for later. Of course, since the function calls itself, this means there is a split <em>for every call</em>. Likewise, what gets addressed first every time is the left term, so the recursion works its way <em>through every left term</em> until the base case is reached. Multiple recursion implies that we traverse the entire height of the tree before computing any other branches. In keeping with the top-down visualization, this is known as ‘depth-first search’.</p>
+<p>In addition to depth-first search, the tree is gradually traversed left-to-right, which you can follow by the <code class="docutils literal notranslate"><span class="pre">1-2-3-2-4-2-1-5-1</span></code> sequence described above.</p>
+<p>It’s worth pointing out that, at the moment we return to frame 1, we have recursed our way through the left-hand side of the tree. We now have the answer to the first term of <code class="docutils literal notranslate"><span class="pre">fib(n</span> <span class="pre">-</span> <span class="pre">1)</span> <span class="pre">+</span> <span class="pre">fib(n</span> <span class="pre">-</span> <span class="pre">2)</span></code>. If the tree were symmetrical, we would say that we were at its midpoint. We repeat the process for the right side, continuing to move depth-first and gradually left-to-right. The last base case we hit is the leaf at the rightmost position of the diagram.</p>
+<p>We’ll use this attribute of recursion to our advantage in the algorithms following this section.</p>
+<p>Of course, there are several ways to think about this: you could think of it as a metaphoric tree, in which case branches spring from a trunk and each branch ends in leaves. Here you might think of it as a ‘height-first’ search. There are also diagrams that grow the recursive calls horizontally, such that the ‘tree’ is on its side, branching horizontally from left to right. However, most texts use the top-to-bottom, left-to-right metaphor.</p>
+</div>
+<div class="section" id="measuring-efficiency-and-complexity">
+<h2>Measuring efficiency and complexity<a class="headerlink" href="#measuring-efficiency-and-complexity" title="Permalink to this headline">¶</a></h2>
+<p>The second consequence of multiple recursion is even more important, at least for our need to compute larger Fibonacci numbers. It may not have been apparent from <code class="docutils literal notranslate"><span class="pre">fib(3)</span></code>, but <code class="docutils literal notranslate"><span class="pre">fib(4)</span></code> shows that there is some amount of redundant computation going on, and if there’s one thing that programmers despise it’s redundant computation.</p>
+<p>Here, in the first, left-handed branch of <code class="docutils literal notranslate"><span class="pre">fib(4)</span></code> we compute <code class="docutils literal notranslate"><span class="pre">fib(2)</span></code> as part of <code class="docutils literal notranslate"><span class="pre">fib(3)</span></code>. As we return the results to frame 1, we also find ourselves having to compute <code class="docutils literal notranslate"><span class="pre">fib(2)</span></code> from scratch for the second, right-handed recursive call, <code class="docutils literal notranslate"><span class="pre">fib(n</span> <span class="pre">-</span> <span class="pre">2)</span></code>. The fact that <code class="docutils literal notranslate"><span class="pre">fib(2)</span></code> is a subtree of both <code class="docutils literal notranslate"><span class="pre">fib(3)</span></code> and <code class="docutils literal notranslate"><span class="pre">fib(4)</span></code> isn’t doing us any favors. You could say it’s a classic case of the right hand not knowing what the left hand is doing.</p>
+<p>The problem is only compounded when we get into double-digit Fibonacci numbers. This becomes computationally <em>very</em> expensive. In fact, try calculating <code class="docutils literal notranslate"><span class="pre">fib(45)</span></code> and see if you can’t make and eat a sandwich while you wait. If we include a step counter that simply ticks off the number of times <code class="docutils literal notranslate"><span class="pre">fib()</span></code> calls itself, we see a real explosion:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span> n       fib(n)        calls
+ 0            0            1
+ 1            1            1
+ 2            1            3
+ 3            2            5
+ 4            3            9
+ 5            5           15
+ 6            8           25
+ 7           13           41
+ 8           21           67
+ 9           34          109
+10           55          177
+11           89          287
+12          144          465
+13          233          753
+14          377        1,219
+15          610        1,973
+ …            …            …
+35    9,227,465   29,860,703
+</pre></div>
+</div>
+<p>While dramatic, tabulating the number of calls doesn’t give us much of an indication of how long this might take. Fortunately, we can further analyize our algorithms by measuring code execution speed. A good tool for this is Python’s <code class="docutils literal notranslate"><span class="pre">timeit</span></code> module, which is designed for testing small pieces of code. To do so, first write this at the top of your code:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">timeit</span>
+</pre></div>
+</div>
+<p>Then wrap up your function call like so:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">timeit</span><span class="o">.</span><span class="n">timeit</span><span class="p">(</span><span class="s1">&#39;fib(35)&#39;</span><span class="p">,</span> <span class="nb">globals</span><span class="o">=</span><span class="nb">globals</span><span class="p">(),</span> <span class="n">number</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>The keyword argument <code class="docutils literal notranslate"><span class="pre">number</span></code> sets the number of times <code class="docutils literal notranslate"><span class="pre">timeit()</span></code> runs the function. Since we’re only interested in a rough cut, you can simply set it to <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you’re running Python from the command line or a similar REPL session, include <code class="docutils literal notranslate"><span class="pre">globals=globals()</span></code> as another kwarg, so that <code class="docutils literal notranslate"><span class="pre">timeit()</span></code> can find the global frame. Otherwise Python will throw an error.</p>
+</div>
+<p>Our complete code for measuring <code class="docutils literal notranslate"><span class="pre">fib()</span></code> looks like this:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">timeit</span>
+
+<span class="k">def</span> <span class="nf">fib</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">n</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">fib</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">fib</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">timeit</span><span class="o">.</span><span class="n">timeit</span><span class="p">(</span><span class="s1">&#39;fib(35)&#39;</span><span class="p">,</span> <span class="nb">globals</span><span class="o">=</span><span class="nb">globals</span><span class="p">(),</span> <span class="n">number</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="s1">&#39;seconds&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; 2.999023314 seconds
+</pre></div>
+</div>
+<p>However, given hardware differences, my execution time will likely be different from yours. Computer science has therefore come up with a formal way of studying computational complexity, independent of hardware and such variables. I’m not going to dwell on complexity in this guide, but you can see that <code class="docutils literal notranslate"><span class="pre">fib()</span></code> is quite an expensive way of going about things. The complexity of what people have come to call the ‘naive Fibonacci algorithm’ isn’t quite <code class="docutils literal notranslate"><span class="pre">2**n</span></code>, where <code class="docutils literal notranslate"><span class="pre">n</span></code> is the Fibonacci number we’re after - <code class="docutils literal notranslate"><span class="pre">2**n</span></code> would be the complexity of a perfect binary tree, where both the left and right sides have an equal number of nodes and leaves. But it’s not far off either. Since the left-hand side of the tree generated by <code class="docutils literal notranslate"><span class="pre">fib(n</span> <span class="pre">-</span> <span class="pre">1)</span></code> will always be larger than the right-hand side, <code class="docutils literal notranslate"><span class="pre">fib(n</span> <span class="pre">-</span> <span class="pre">2)</span></code>, we say that the <code class="docutils literal notranslate"><span class="pre">fib(n)</span></code> tree is asymmetrical. In the end, the efficiency is closer to <code class="docutils literal notranslate"><span class="pre">1.6**n</span></code>, which is still exponential and therefore to be avoided.</p>
+<p>It looks like recursion has finally failed us. Sure, the code is very pretty to look at, but useless if it doesn’t give the answer. On the other hand, if we could find a way to 1) store the result of each computation once we made it, and 2) refer back to that result when needed, we could potentially cut down on the number of steps. And we can, using a technique known as ‘memoization’, which I’ll cover in the next section.</p>
+</div>
+<div class="section" id="heuristics-and-exercises">
+<h2>Heuristics and Exercises<a class="headerlink" href="#heuristics-and-exercises" title="Permalink to this headline">¶</a></h2>
+<p>♦ Recursion may be powerful, elegant and compact, but can also yield certain solutions that are computationally unwieldy, if not inachievable. Solutions that imply returning multiple recursive calls should be approached with extreme caution.</p>
+<p>♦ Multiple recursive calls expand call diagrams as linear ‘stacks’ to branching ‘trees’. When following the flow of a multiply recursing function, keep in mind that the function will recurse fully to the base case of its first recursive call before evaluating any other calls.</p>
+<p>♦ This depth-first search is complemented by the fact that the tree will fill itself out by moving in a gradual, left-to-right direction. The final base case to be evaluated will be the rightmost leaf in the diagram.</p>
+<p><strong>Exercise:</strong> The tribonacci series is a generalization of the Fibonacci sequence where each term is the sum of the three preceding terms.</p>
+<p>The first few terms of the sequence are:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>[0, 0, 1, 1, 2, 4, 7, 13, 24, 44, 81, 149, 274]
+</pre></div>
+</div>
+<p>The tribonacci sequence is defined as follows:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>fn(0) == fn(1) == 1
+fn(2) == 2
+fn(n) == fn(n - 1) + fn(n - 2) + fn(n - 3)
+</pre></div>
+</div>
+<p>Create a recursive function <code class="docutils literal notranslate"><span class="pre">trib()</span></code> that returns the tribonacci number for any given <code class="docutils literal notranslate"><span class="pre">n</span></code>. How would you write the base case? At what point does the sequence noticeably slow down?</p>
+<p>Take a few minutes to draw out, by hand, the call diagram for <code class="docutils literal notranslate"><span class="pre">trib(5)</span></code>. What does the branching look like? How would you characterize the computational complexity of a function like <code class="docutils literal notranslate"><span class="pre">trib()</span></code> versus that of <code class="docutils literal notranslate"><span class="pre">fib()</span></code>?</p>
+<p>Now measure performance by modifying both <code class="docutils literal notranslate"><span class="pre">fib()</span></code> and <code class="docutils literal notranslate"><span class="pre">trib()</span></code> to use <code class="docutils literal notranslate"><span class="pre">timeit()</span></code>. Write a loop that will record the times for a range of values for both functions. Do the results match up with your intuition? Why or why not?</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Multiple Recursive Calls: Fibonacci Sequence, Part 1</a><ul>
+<li><a class="reference internal" href="#introducing-multiple-recursive-calls">Introducing multiple recursive calls</a></li>
+<li><a class="reference internal" href="#measuring-efficiency-and-complexity">Measuring efficiency and complexity</a></li>
+<li><a class="reference internal" href="#heuristics-and-exercises">Heuristics and Exercises</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="09 Pascal.html"
+                        title="previous chapter">Expanding a Series: Pascal’s Triangle</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/10 Fibonacci 1.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="09 Pascal.html" title="Expanding a Series: Pascal’s Triangle"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Understanding Recursion Using Python 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, panopticonopolis.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
+    </div>
+  </body>
+</html>

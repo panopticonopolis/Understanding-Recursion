@@ -1,0 +1,243 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Recursion in Light of Frames &#8212; Understanding Recursion Using Python 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Counting In Recursion" href="04 Counting.html" />
+    <link rel="prev" title="Scope, Frame and Stack" href="02 Scope, Frame and Stack.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="04 Counting.html" title="Counting In Recursion"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="02 Scope, Frame and Stack.html" title="Scope, Frame and Stack"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Understanding Recursion Using Python 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="recursion-in-light-of-frames">
+<span id="frames"></span><h1>Recursion in Light of Frames<a class="headerlink" href="#recursion-in-light-of-frames" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="my-first-recursive-code">
+<h2>My first recursive code<a class="headerlink" href="#my-first-recursive-code" title="Permalink to this headline">¶</a></h2>
+<p>Now we are slightly better able to answer the question of what happens when a function calls itself. Given the preceding discussion, we can characterize recursion as a specialized case of frame creation and destruction - one where each successive frame and its associated state is created by a function as a slightly modified copy of itself.</p>
+<p>Consider one of the simplest examples of recursion, a function <code class="docutils literal notranslate"><span class="pre">summ()</span></code> that sums a series of numbers. Starting from a given positive integer <code class="docutils literal notranslate"><span class="pre">n</span></code>, this function should add to <code class="docutils literal notranslate"><span class="pre">n</span></code> every integer smaller than <code class="docutils literal notranslate"><span class="pre">n</span></code>, all the way to <code class="docutils literal notranslate"><span class="pre">1</span></code>. We would write this out as:</p>
+<p><code class="docutils literal notranslate"><span class="pre">summ(3)</span> <span class="pre">==</span> <span class="pre">3</span> <span class="pre">+</span> <span class="pre">2</span> <span class="pre">+</span> <span class="pre">1</span> <span class="pre">==</span> <span class="pre">6</span></code></p>
+<p>Here is the recursive code, which we’ll pick apart below. Don’t panic.</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">summ</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">n</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">n</span> <span class="o">+</span> <span class="n">summ</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">summ</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; 6
+</pre></div>
+</div>
+<p>When our program (call it <code class="docutils literal notranslate"><span class="pre">summ.py</span></code>) is first executed, we create the global frame. At the global frame, Python’s interpreter defines <code class="docutils literal notranslate"><span class="pre">summ()</span></code> but does not  execute it. It basically just says, ‘Here is a function called <code class="docutils literal notranslate"><span class="pre">summ()</span></code> that is expecting one argument. Gotcha.’</p>
+<p>The next method executed is <code class="docutils literal notranslate"><span class="pre">print()</span></code>, which calls <code class="docutils literal notranslate"><span class="pre">summ()</span></code> with an argument of <code class="docutils literal notranslate"><span class="pre">3</span></code>. This creates frame 1 in the stack, which, if we could see it, would contain a very familiar-looking function:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">summ</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+    <span class="k">if</span> <span class="mi">3</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">3</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">3</span> <span class="o">+</span> <span class="n">summ</span><span class="p">(</span><span class="mi">3</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Leveraging our discussion of namespace at the end of <a class="reference internal" href="02 Scope, Frame and Stack.html#scope-frame-and-stack"><span class="std std-ref">Scope, Frame and Stack</span></a>, we would say that “the namespace of <code class="docutils literal notranslate"><span class="pre">n</span></code> in frame 1 is <code class="docutils literal notranslate"><span class="pre">3</span></code>.” Let’s now execute the function <code class="docutils literal notranslate"><span class="pre">summ(3)</span></code>.</p>
+<p>Since <code class="docutils literal notranslate"><span class="pre">3</span> <span class="pre">!=</span> <span class="pre">1</span></code> we skip the <code class="docutils literal notranslate"><span class="pre">if</span></code> clause and proceed to <code class="docutils literal notranslate"><span class="pre">else</span></code>. There’s only a <code class="docutils literal notranslate"><span class="pre">return</span></code> statement there, so let’s try to evaluate it. We can get there partway, since we know <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">==</span> <span class="pre">3</span></code>, but can’t complete the return because the second part invokes <code class="docutils literal notranslate"><span class="pre">summ()</span></code> again, except now with the argument <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">-</span> <span class="pre">1</span></code>. So we have to call <code class="docutils literal notranslate"><span class="pre">summ(2)</span></code>. This opens frame 2. In the meantime, frame 1 remains open, still waiting to resolve <code class="docutils literal notranslate"><span class="pre">3</span> <span class="pre">+</span> <span class="pre">summ(2)</span></code>. Here’s what frame 2 looks like:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">summ</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">if</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">2</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">summ</span><span class="p">(</span><span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In frame 2, the namespace of <code class="docutils literal notranslate"><span class="pre">n</span></code> is <code class="docutils literal notranslate"><span class="pre">2</span></code> - but keep in mind that in frame 1, it is still <code class="docutils literal notranslate"><span class="pre">3</span></code>!. Regardless, frame 2 is in the same boat as frame 1: <code class="docutils literal notranslate"><span class="pre">2</span> <span class="pre">!=</span> <span class="pre">1</span></code> so we skip the <code class="docutils literal notranslate"><span class="pre">if</span></code> clause and go to <code class="docutils literal notranslate"><span class="pre">else</span></code>. At the <code class="docutils literal notranslate"><span class="pre">return</span></code> statement, we know that <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">==</span> <span class="pre">2</span></code> but still need to solve for <code class="docutils literal notranslate"><span class="pre">summ(n</span> <span class="pre">-</span> <span class="pre">1)</span></code>, ie, <code class="docutils literal notranslate"><span class="pre">summ(2</span> <span class="pre">-</span> <span class="pre">1)</span></code> or <code class="docutils literal notranslate"><span class="pre">summ(1)</span></code>. So we invoke <code class="docutils literal notranslate"><span class="pre">summ()</span></code> once again, this time with an argument of <code class="docutils literal notranslate"><span class="pre">1</span></code>. We leave frame 2 open, waiting to resolve <code class="docutils literal notranslate"><span class="pre">2</span> <span class="pre">+</span> <span class="pre">summ(1)</span></code>, and create frame 3 by calling <code class="docutils literal notranslate"><span class="pre">summ(1)</span></code>.</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">summ</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="mi">1</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">summ</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Here in frame 3 we finally satisfy the <code class="docutils literal notranslate"><span class="pre">if</span></code> condition, since the namespace of <code class="docutils literal notranslate"><span class="pre">n</span></code> in this frame is indeed <code class="docutils literal notranslate"><span class="pre">1</span></code>. We can return <code class="docutils literal notranslate"><span class="pre">1</span></code> and the <code class="docutils literal notranslate"><span class="pre">else</span></code> block goes untouched. Once we complete the return, the function in frame 3 will terminate and the frame will close.</p>
+<p>Now we begin moving back through the succession of open frames to conclude the computation. From frame 3, we are returning <code class="docutils literal notranslate"><span class="pre">1</span></code> to the frame that called it (frame 2). But where is it winding up in frame 2?</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span> <span class="k">def</span> <span class="nf">summ</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+     <span class="k">if</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+         <span class="k">return</span> <span class="mi">2</span>
+     <span class="k">else</span><span class="p">:</span>
+<span class="hll">         <span class="k">return</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">summ</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span></pre></div>
+</div>
+<p>Quite simply, it replaces <code class="docutils literal notranslate"><span class="pre">summ(1)</span></code> as the last term in the last line. This may seem obvious, but in a recursive setting, knowing where the returned value lands from the called function is essential to tracing the path a recursed value takes.</p>
+<p>Now that we have a definite value for <code class="docutils literal notranslate"><span class="pre">summ(1)</span></code>, we add it to <code class="docutils literal notranslate"><span class="pre">2</span></code>. With our <code class="docutils literal notranslate"><span class="pre">3</span></code> in hand, we are ready to return that value to frame 1, which is what’s next in the call stack. Once we’ve returned <code class="docutils literal notranslate"><span class="pre">3</span></code>, frame 2 is discarded.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span> <span class="k">def</span> <span class="nf">summ</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+     <span class="k">if</span> <span class="mi">3</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+         <span class="k">return</span> <span class="mi">3</span>
+     <span class="k">else</span><span class="p">:</span>
+<span class="hll">         <span class="k">return</span> <span class="mi">3</span> <span class="o">+</span> <span class="n">summ</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+</span></pre></div>
+</div>
+<p>The same process applies: now that we know that <code class="docutils literal notranslate"><span class="pre">summ(2)</span> <span class="pre">==</span> <span class="pre">3</span></code>, we can add <code class="docutils literal notranslate"><span class="pre">3</span> <span class="pre">+</span> <span class="pre">3</span></code> and return <code class="docutils literal notranslate"><span class="pre">6</span></code> to the global frame. Once we’ve done this, the program ends.</p>
+<p>You can see that there is a distinct resemblance between the program flow in this example and our trivial code from the last example in <a class="reference internal" href="02 Scope, Frame and Stack.html#scope-frame-and-stack"><span class="std std-ref">Scope, Frame and Stack</span></a>.</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">foo1</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">foo2</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+
+        <span class="k">def</span> <span class="nf">foo3</span><span class="p">(</span><span class="n">z</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">z</span>
+
+        <span class="k">return</span> <span class="n">foo3</span><span class="p">()</span> <span class="o">+</span> <span class="n">y</span>
+
+    <span class="k">return</span> <span class="n">foo2</span><span class="p">()</span> <span class="o">+</span> <span class="n">x</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">foo1</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>One of the elegant aspects of recursive code is that we don’t need to create any additional functions beyond the one that we already specified to solve not only the specific problem, but the general case as well. In this case, we can now sum <em>any</em> positive integer <code class="docutils literal notranslate"><span class="pre">n</span></code>. By invoking itself with a modified argument, the function handles as many steps are necessary - it just keeps decrementing until it gets to <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p>
+<p>I want to point out two things before we leave <code class="docutils literal notranslate"><span class="pre">summ()</span></code>.</p>
+<p>The first is about frames, state and namespaces. You’ll note that, for every frame, the namespace of <code class="docutils literal notranslate"><span class="pre">n</span></code> was decremented by 1. Thus, even though <code class="docutils literal notranslate"><span class="pre">summ()</span></code> was pretty much a carbon copy in every frame, there was the crucial distinction of differing namespaces for <code class="docutils literal notranslate"><span class="pre">n</span></code> in each frame. Moreover, once each frame was seeded with those namespaces, the state persisted once we satisfied the <code class="docutils literal notranslate"><span class="pre">if</span></code> statement and we began returning values.</p>
+<p>In this case, we never changed the namespace for <code class="docutils literal notranslate"><span class="pre">n</span></code> - all the work was being done in the <code class="docutils literal notranslate"><span class="pre">return</span></code> statement, which picked up the existing value of <code class="docutils literal notranslate"><span class="pre">n</span></code> for that frame and just added it to what had been returned from the called frame/function. But fear not, we will see other examples where namespaces change for variables in frames.</p>
+<p>The other thing worth mentioning is something you should always keep in mind when looking at recursive code: How much code gets executed on the way in to satisfying the <code class="docutils literal notranslate"><span class="pre">if</span></code> statement, and how much gets executed on the way back?</p>
+<p>In this case, we carried out all of <code class="docutils literal notranslate"><span class="pre">summ()</span></code>’s code in every frame <em>except</em> for the recursive call. Once we were able to <code class="docutils literal notranslate"><span class="pre">return</span> <span class="pre">1</span></code>, we could complete the computation for each open frame with ease. As an analogy, imagine you have to navigate a garden to get to, say a fruit tree. To do so, you make a path by laying down stones to a goal. Once you got to the tree and got the fruit, all you had to do to get back to your starting point was to retrace your steps along the path you had already laid.</p>
+<p>I’m being explicit about this because oftentimes the only examples of recursion offered are ones where the work is lopsided in exactly this way. People then get misled into thinking that there is some sort of special relationship between <code class="docutils literal notranslate"><span class="pre">return</span></code> and the recursive call, when there really isn’t. In fact, we’ll start pulling apart this syntax in the next sections, so that we can get the function itself to show us what’s going on.</p>
+</div>
+<div class="section" id="understanding-recursion-as-a-process">
+<h2>Understanding recursion as a process<a class="headerlink" href="#understanding-recursion-as-a-process" title="Permalink to this headline">¶</a></h2>
+<p>Now we can go back to the initial statement of what makes a function properly recursive:</p>
+<ol class="arabic simple">
+<li>Identify the base case</li>
+<li>Identify the recursive case</li>
+</ol>
+<p>Until now I’ve been illustrating the recursive case, which is another way of saying, in what way do we modify the argument the function passes to itself in order to break the problem down to its fundamental? But in order for recursion to work, we also have to recognize what is that fundamental state. This is the ‘base case’.</p>
+<p>In the example of <code class="docutils literal notranslate"><span class="pre">summ()</span></code>, the simplest possible number that is the sum of whole numbers preceding it is, well, 1. In mathematical notation, f(1) == 1. (We could also specify the base case as <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">n</span> <span class="pre">==</span> <span class="pre">0</span></code> but that would not add to the sum, and hence only represents an additional, unnecessary computational step.) So for <code class="docutils literal notranslate"><span class="pre">summ()</span></code> the base case is <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">==</span> <span class="pre">1</span></code>. In this case we can also either return <code class="docutils literal notranslate"><span class="pre">1</span></code> or <code class="docutils literal notranslate"><span class="pre">n</span></code>, as the value at the base case is the same as the variable that eventually led us there (this won’t always be true, either).</p>
+<p>The larger point is that the base and recursive cases must work in tandem: the recursive cases provides an incremental way to get to the base case, and the base case provides the fundamental answer that can then be returned back through the preceding frames to generate the final answer. At every step in the return journey, the returned value is computed against the <em>state of each frame</em>, until we are back where we began, solution in hand.</p>
+<p>This process of ‘seeding’ our frames on the way to the base case is essential. Simply identifying the base case is necessary but insufficient, because if we don’t arrive at the base case recursively, there is nothing against which the base case can be successively computed during the return journey. In <code class="docutils literal notranslate"><span class="pre">summ()</span></code>, this took the form of adding <code class="docutils literal notranslate"><span class="pre">n</span></code>’s namespace to the returned value of every recursive call. It is this unbroken chain of as-yet undetermined computation that is fulfilled when the base case begins its trip back to the original, global frame. In terms of frame we can narrate the program as saying:</p>
+<blockquote>
+<div><p><strong>1</strong>   Global frame asks, “What is <code class="docutils literal notranslate"><span class="pre">print(summ(3))</span></code>?”“</p>
+<p><strong>2</strong>   Frame 1 says, “<code class="docutils literal notranslate"><span class="pre">summ(3)</span></code> is <code class="docutils literal notranslate"><span class="pre">3</span> <span class="pre">+</span> <span class="pre">summ(2)</span></code> but I don’t know what <code class="docutils literal notranslate"><span class="pre">summ(2)</span></code> is.”</p>
+<p><strong>3</strong>   Frame 2 says, “<code class="docutils literal notranslate"><span class="pre">summ(2)</span></code> is <code class="docutils literal notranslate"><span class="pre">2</span> <span class="pre">+</span> <span class="pre">summ(1)</span></code> but I don’t know what <code class="docutils literal notranslate"><span class="pre">summ(1)</span></code> is.”</p>
+<p><strong>4</strong>   Frame 3 says, “I know that <code class="docutils literal notranslate"><span class="pre">summ(1)</span> <span class="pre">==</span> <span class="pre">1</span></code> so I can now return <code class="docutils literal notranslate"><span class="pre">1</span></code>”</p>
+<p><strong>3</strong>   Frame 2 says, “<code class="docutils literal notranslate"><span class="pre">summ(2)</span></code> is now <code class="docutils literal notranslate"><span class="pre">2</span> <span class="pre">+</span> <span class="pre">1</span></code> so I can now return <code class="docutils literal notranslate"><span class="pre">3</span></code>”</p>
+<p><strong>2</strong>   Frame 1 says, “<code class="docutils literal notranslate"><span class="pre">summ(3)</span></code> is now <code class="docutils literal notranslate"><span class="pre">3</span> <span class="pre">+</span> <span class="pre">3</span></code> so I can now return <code class="docutils literal notranslate"><span class="pre">6</span></code>”</p>
+<p><strong>1</strong>   Global frame says, “<code class="docutils literal notranslate"><span class="pre">print(summ(3))</span> <span class="pre">==</span> <span class="pre">6</span></code>”</p>
+</div></blockquote>
+<p>If the numbering looks unusual it’s because I’m counting by frames and not steps. Steps may be useful for iterative procedures - for example, how many times are you looping through a particular iterable? Counting by frames emphasizes recursion’s unique mechanism of first setting up the series of undetermined computations, and then, once the base case has been reached, completing those computations. As the numbering implies, this run of completions <em>always</em> happens in the reverse order.</p>
+<p>Once you understand that each frame has its own state and that that state persists while it waits for the return to occur, there is no mystery in how each recursive step ‘knows’ exactly what to add to the returned result before passing it on. Sometimes recursion can be complex, but if you hold on to this axiom, you should be able to trace the flow of values, no matter how convoluted.</p>
+<p>One way of visualizing this is to think of computation within a function as happening ‘vertically’, in the sense that a function generally executes its statements and expressions from the first line to the last line (taking into account, of course, branching and loops and such). On the other hand, recursive calls and their returns from frames thus generated are ‘horizontal’, in the sense that they stop and restart the generating function at the exact point where the function calls itself.</p>
+<p>I imagine it as a left-to-right process, but however you imagine it, the thing to keep in mind is that, at the moment the recursive call happens, all computation in the originating frame pauses. Similarly, at the moment that the ‘horizontal’ insertion occurs (ie, a result is returned to the originating frame), the ‘vertical’ computation restarts, with the state of the function in the originating frame re-engaged.</p>
+<p>Another benefit of conceptually separating the ‘horizontality’ of what is being returned from the ‘verticality’ of a specific frame’s computation is that it reminds us that <em>functions compute until they are done</em>, which overwhelmingly means when the function reaches a <code class="docutils literal notranslate"><span class="pre">return</span></code> statement. Of course, this doesn’t mean that every line is executed. In <code class="docutils literal notranslate"><span class="pre">summ()</span></code>’s base case, the <code class="docutils literal notranslate"><span class="pre">else</span></code> clause is never triggered. But for every frame the function executes until it reaches a return statement it can completely evaluate - or it reaches another recursive call.</p>
+<p>In the interest of thinking about this more clearly, allow me to suggest some non-standard terminology. Let’s call the entire recursive process a ‘recursive cascade’. I suggest this because once a function calls itself, you’re pretty much stuck with letting the entire process work itself out. Recursion is unlike iterative code where it’s possible to break out of a loop once a condition is met. In recursion, you either get to the base case (and out again), or you die trying. Ok, not really, but you’ll be stuck in an infinite loop and your program will request more memory than your machine has, and the program will crash. We’ll look at a few exceptions to this, but in general recursion is intended to be exhaustive in its application.</p>
+<p>The other two terms are related to the notion of ‘horizontality’ and ‘verticality’. A great way to understand recursive code (and how to build it) is to recognize what needs to happen on the way to the base case, and what needs to happen on the way back. In this sense, I think of all the code that precedes the recursive call as being ‘pre-recursive’, and everything that happens after it as ‘post-recursive’.</p>
+<p>Pre-recursively, we are generally ‘seeding’ each frame with the values we want to be available to the function. In the case of <code class="docutils literal notranslate"><span class="pre">summ()</span></code>, that was making sure that each namespace of <code class="docutils literal notranslate"><span class="pre">n</span></code> had a value that had been decremented by 1. Once the base case was achieved, we flipped into post-recursive mode, where we revisited each calling frame (in LIFO order), and computed the base case’s returned value with the value of <code class="docutils literal notranslate"><span class="pre">n</span></code> in each frame.</p>
+<p>I realize that you may squint at <code class="docutils literal notranslate"><span class="pre">summ()</span></code> and struggle to see why I should be so overdetermined in my nomenclature. Suffice to say that it will come in very handy as our examples become more complex.</p>
+<p>Of course, you may not like these terms at all. For instance, you could argue that there is no such thing as ‘pre-recursive’ and ‘post-recursive’ becase once a function calls itself, it’s all recursive. You could think about recursion using the garden path metaphor I tossed out above, or using something else entirely. I’m just trying to present a number of ways in which you can think about this technique, so please use whatever feels best to you, and let me know if you have any suggestions.</p>
+</div>
+<div class="section" id="heuristics-and-exercises">
+<h2>Heuristics and Exercises<a class="headerlink" href="#heuristics-and-exercises" title="Permalink to this headline">¶</a></h2>
+<p>Since I like my way of framing recursion, I’ll use it to begin defining some heuristics.</p>
+<p>♦ The recursive cascade is the recursive mechanism viewed as a whole. Just as functions execute until they are done (ie, reach a <code class="docutils literal notranslate"><span class="pre">return</span></code> statement), a recursive function, once called, will ‘cascade’ to the base case and back to the frame that originally called it.</p>
+<p>♦ Every recursive algorithm is divided into (at least) two parts - the pre-recursive and post-recursive. The pre-recursive part of the function is executed before the recursive call, and post-recursive is the part that is executed after the recursive call has returned its results.</p>
+<p>♦ The pre-recursive portion of function seeds the frames with the desired namespaces until the base case has been reached.</p>
+<p>♦ Once the base case has been attained, the post-recursive portion of the function computes the value returned by the base case against the namespaces of selected variables, as pre-recursively seeded in each frame.</p>
+<p>♦ The pre-recursive portion of the algorithm happens in the order that frames are created, whereas the post-recursive always happens in the reverse order.</p>
+<p><strong>Question</strong>: Am I just hedging by saying ‘Every recursive algorithm is divided into (at least) two parts’? In what circumstances might there be more parts?</p>
+<p><strong>Exercise:</strong> Write a recursive solution <code class="docutils literal notranslate"><span class="pre">factorial()</span></code> to find the factorial of a given positive integer <code class="docutils literal notranslate"><span class="pre">n</span></code>.</p>
+<p>To solve this problem, first consider how factorials are computed. How can this formula then be applied to a recursive context? How can you use what we developed in <code class="docutils literal notranslate"><span class="pre">summ()</span></code> to characterize both the base and recursive cases?</p>
+<p>Since we’re interested in not just solving the problem but understanding how this solutions works, build into your program a functionality to keep track of what is going on. Can you keep track of each argument as it is passed recursively? Can you count the steps? Can you count the frames? How can you tell which is which?</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Recursion in Light of Frames</a><ul>
+<li><a class="reference internal" href="#my-first-recursive-code">My first recursive code</a></li>
+<li><a class="reference internal" href="#understanding-recursion-as-a-process">Understanding recursion as a process</a></li>
+<li><a class="reference internal" href="#heuristics-and-exercises">Heuristics and Exercises</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="02 Scope, Frame and Stack.html"
+                        title="previous chapter">Scope, Frame and Stack</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="04 Counting.html"
+                        title="next chapter">Counting In Recursion</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/03 Frames.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="04 Counting.html" title="Counting In Recursion"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="02 Scope, Frame and Stack.html" title="Scope, Frame and Stack"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Understanding Recursion Using Python 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, panopticonopolis.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
+    </div>
+  </body>
+</html>

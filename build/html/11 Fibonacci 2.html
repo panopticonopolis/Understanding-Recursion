@@ -1,0 +1,404 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Memoization: Fibonacci Sequence, Part 2 &#8212; Understanding Recursion Using Python 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Multiple Recursive Calls: Fibonacci Sequence, Part 1" href="10 Fibonacci 1.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="10 Fibonacci 1.html" title="Multiple Recursive Calls: Fibonacci Sequence, Part 1"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Understanding Recursion Using Python 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="memoization-fibonacci-sequence-part-2">
+<span id="fibonacci-2"></span><h1>Memoization: Fibonacci Sequence, Part 2<a class="headerlink" href="#memoization-fibonacci-sequence-part-2" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="memoizing-by-list">
+<h2>Memoizing by list<a class="headerlink" href="#memoizing-by-list" title="Permalink to this headline">¶</a></h2>
+<p>Quite simply, ‘memoization’ is a form of caching. Before looking at memoization for Fibonacci numbers, let’s do a simpler example, one that computes factorials. From there we’ll build out a series of related solutions that will get us to a clearly understandable memoized solution for <code class="docutils literal notranslate"><span class="pre">fib()</span></code>.</p>
+<p>For the factorial exercise in <a class="reference internal" href="03 Frames.html#frames"><span class="std std-ref">Recursion in Light of Frames</span></a>, you probably came up with something like the following code:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">fact</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">n</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">n</span> <span class="o">*</span> <span class="n">fact</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">fact</span><span class="p">(</span><span class="mi">5</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; 120
+</pre></div>
+</div>
+<p>As it stands, the program discards all the intermediate values of <code class="docutils literal notranslate"><span class="pre">fact(n</span> <span class="pre">-</span> <span class="pre">1)</span></code> as it returns its way through the call stack. What if we wanted to capture those values? In a way, we already did this with our second version of <code class="docutils literal notranslate"><span class="pre">pascal()</span></code> in <a class="reference internal" href="09 Pascal.html#pascal"><span class="std std-ref">Expanding a Series: Pascal’s Triangle</span></a>. There, we returned not just the <em>nth</em> row of the triangle, but all the rows preceding it. It took the form of a list of lists that was passed through each recursed frame, starting from the base case. We can modify <code class="docutils literal notranslate"><span class="pre">fact()</span></code> to do something similar:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">factMemList</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">L</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">L</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">factMemList</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span>
+        <span class="n">L</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n</span> <span class="o">*</span> <span class="n">L</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">L</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">factMemList</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; [1, 2, 6, 24, 120]
+</pre></div>
+</div>
+<p>Here, we want to return the entire list <code class="docutils literal notranslate"><span class="pre">L</span></code>. So within the <code class="docutils literal notranslate"><span class="pre">else</span></code> block we make the recursive call, and then do some computation on the returned <code class="docutils literal notranslate"><span class="pre">L</span></code>. You’ll notice that we don’t assign the recursive call to any variable! Why is that? Didn’t I claim earlier that we have to explicitly update the state of a variable?</p>
+<p>Actually, we could write <code class="docutils literal notranslate"><span class="pre">L</span> <span class="pre">=</span> <span class="pre">factMemList(n</span> <span class="pre">-</span> <span class="pre">1,</span> <span class="pre">L)</span></code> but we don’t have to, since <code class="docutils literal notranslate"><span class="pre">factMemList(n</span> <span class="pre">-</span> <span class="pre">1,</span> <span class="pre">L)</span></code> already <em>is</em> <code class="docutils literal notranslate"><span class="pre">L</span></code>, simply by the fact that <code class="docutils literal notranslate"><span class="pre">L</span></code> is what’s being returned. In other words, the namespace of <code class="docutils literal notranslate"><span class="pre">L</span></code> for a given frame is automatically updated by the <code class="docutils literal notranslate"><span class="pre">return</span> <span class="pre">L</span></code> statement.</p>
+<p>For each frame, all that we are interested in getting is the right <code class="docutils literal notranslate"><span class="pre">n</span></code> and <code class="docutils literal notranslate"><span class="pre">L</span></code>. We get the right <code class="docutils literal notranslate"><span class="pre">n</span></code> by seeding each frame with <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">-</span> <span class="pre">1</span></code> on the way to the base case, ie, pre-recursively. Once we get to the base case, we return <code class="docutils literal notranslate"><span class="pre">L</span></code>. Post-recursively, each successive frame performs the computation <code class="docutils literal notranslate"><span class="pre">(n</span> <span class="pre">*</span> <span class="pre">L[-1])</span></code> and <em>appends it to ``L``</em>. Then that modified <code class="docutils literal notranslate"><span class="pre">L</span></code> is passed back to the next calling frame. The result is that, at each point, the correct <code class="docutils literal notranslate"><span class="pre">n</span></code> interacts with <code class="docutils literal notranslate"><span class="pre">L[-1]</span></code>, which is always the last item in the list.</p>
+<p>When designing a recursive solution, remember the three basic design decisions that need to be made. In the process of getting to the base case, how do I want to ‘seed’ the function’s state for each frame? At what point do I ‘split’ the function with the recursive call? And what do I want to do post-recursively - that is, what am I returning, and what kind of computation do I want to perform on that returned object before I reach the current frame’s return statement?</p>
+<p>Our print-tracing approach tracks the recursion as follows:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">frame</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">def</span> <span class="nf">factMemList</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">L</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">frame</span>
+    <span class="n">frame</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">frame =&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;base case:&#39;</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">L</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">frame =&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;n =&#39;</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="s1">&#39;L =&#39;</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span>
+        <span class="n">factMemList</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span>
+        <span class="n">frame</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">frame =&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;n =&#39;</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="s1">&#39;L =&#39;</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span>
+        <span class="n">L</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n</span> <span class="o">*</span> <span class="n">L</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;returning L as&#39;</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">L</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;global frame =&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">factMemList</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; global frame = 0
+
+&gt;&gt;&gt; frame = 1
+&gt;&gt;&gt; n = 5 L = [1]
+
+&gt;&gt;&gt; frame = 2
+&gt;&gt;&gt; n = 4 L = [1]
+
+&gt;&gt;&gt; frame = 3
+&gt;&gt;&gt; n = 3 L = [1]
+
+&gt;&gt;&gt; frame = 4
+&gt;&gt;&gt; n = 2 L = [1]
+
+&gt;&gt;&gt; frame = 5
+&gt;&gt;&gt; base case: [1]
+
+&gt;&gt;&gt; frame = 4
+&gt;&gt;&gt; n = 2 L = [1]
+&gt;&gt;&gt; returning L as [1, 2]
+
+&gt;&gt;&gt; frame = 3
+&gt;&gt;&gt; n = 3 L = [1, 2]
+&gt;&gt;&gt; returning L as [1, 2, 6]
+
+&gt;&gt;&gt; frame = 2
+&gt;&gt;&gt; n = 4 L = [1, 2, 6]
+&gt;&gt;&gt; returning L as [1, 2, 6, 24]
+
+&gt;&gt;&gt; frame = 1
+&gt;&gt;&gt; n = 5 L = [1, 2, 6, 24]
+&gt;&gt;&gt; returning L as [1, 2, 6, 24, 120]
+&gt;&gt;&gt; [1, 2, 6, 24, 120]
+</pre></div>
+</div>
+<p>This is pretty good! We now have a complete list of factorials up to and including <em>n</em>, and every list element in index position <code class="docutils literal notranslate"><span class="pre">L[n]</span></code> corresponds to the <em>n+1th</em> factorial, so it’s not hard to look up whatever we might need.</p>
+</div>
+<div class="section" id="memoizing-by-dictionary">
+<h2>Memoizing by dictionary<a class="headerlink" href="#memoizing-by-dictionary" title="Permalink to this headline">¶</a></h2>
+<p>We can do even better, though, by using Python’s <code class="docutils literal notranslate"><span class="pre">dict</span></code> data type. Like lists, dictionaries are mutable, so we can add to them on the fly. Unlike lists, dictionaries consist of key-value pairs. Dictionaries also require uniqueness - but only for keys. So mapping <em>n —&gt; fn(n)</em> as key-value pairs is more readable than a list. In a list, when we append each <em>fn(n)</em> based on a continuously incrementing <em>n</em>, <em>n</em> is implied by the index position of <em>fn(n)</em>. In a dictionary, that <em>n</em> is explicitly stated as the key. (Dictionaries have the added flexibility that we can use any immutable data type as a key, but we won’t need to do that here - integers are all that’s required).</p>
+<p>Let’s call our dictionary <code class="docutils literal notranslate"><span class="pre">factdict</span></code>. If <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">==</span> <span class="pre">6</span></code> and <code class="docutils literal notranslate"><span class="pre">fact(6)</span> <span class="pre">==</span> <span class="pre">720</span></code>, in dictionary syntax the key-value pair would read as <code class="docutils literal notranslate"><span class="pre">{6:720}</span></code>. We populate <code class="docutils literal notranslate"><span class="pre">factdict</span></code> simply by declaring <code class="docutils literal notranslate"><span class="pre">factdict[6]</span> <span class="pre">=</span> <span class="pre">720</span></code>, creating both key and value at the same stroke. So if <code class="docutils literal notranslate"><span class="pre">factdict</span></code> had the key-value pair <code class="docutils literal notranslate"><span class="pre">{1:1}</span></code> and we wanted to compute <code class="docutils literal notranslate"><span class="pre">fact(n)</span></code> for some <code class="docutils literal notranslate"><span class="pre">n</span></code>, we would write:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">factdict</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span><span class="mi">1</span><span class="p">}</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">factdict</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="n">n</span> <span class="o">*</span> <span class="n">factdict</span><span class="p">[</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>    <span class="c1">#value of factdict[n - 1] is 1</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; {1:1, 2:2}
+</pre></div>
+</div>
+<p>This simply multiplies <code class="docutils literal notranslate"><span class="pre">n</span></code> and the value assigned to the last key, and sets that product as a value to the new key <code class="docutils literal notranslate"><span class="pre">n</span></code>. Iteratively, we can easily populate a dictionary with the pairs <code class="docutils literal notranslate"><span class="pre">{n:fn(n)}</span></code>:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">n</span> <span class="o">=</span> <span class="mi">6</span>
+<span class="n">factdict</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span><span class="mi">1</span><span class="p">}</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+    <span class="n">factdict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span> <span class="o">*</span> <span class="n">factdict</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">factdict</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; {1: 1, 2: 2, 3: 6, 4: 24, 5: 120, 6: 720}
+</pre></div>
+</div>
+<p>Here we set a new key for each <code class="docutils literal notranslate"><span class="pre">n</span></code>, represented as <code class="docutils literal notranslate"><span class="pre">i</span></code> in the loop, and give it the value of <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">*</span> <span class="pre">factdict[n-1]</span></code>, since <code class="docutils literal notranslate"><span class="pre">factdict[n-1]</span></code> will always give us the value from the last available key-value pair. Since we’ve now expanded the dictionary by one pair, the next time the loop goes around <code class="docutils literal notranslate"><span class="pre">facdict[i-1]</span></code> will continue to access the most recently added key-value pair. Even though dictionaries, like lists, are unordered, we can guarantee this, because we are searching by key, and our keys always increment by 1.</p>
+<p>In fact, you could argue that…</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">factdict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span> <span class="o">*</span> <span class="n">factdict</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>…is just a dictionary rewrite of what we were doing with a list in <code class="docutils literal notranslate"><span class="pre">factMemList()</span></code>:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">L</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n</span> <span class="o">*</span> <span class="n">L</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>The other bit that makes this code work is that we don’t start from an empty dictionary - otherwise <code class="docutils literal notranslate"><span class="pre">factdict[i-1]</span></code> would throw an error. But starting with <code class="docutils literal notranslate"><span class="pre">{1:1}</span></code> harmonizes nicely with the fact that our base case for <code class="docutils literal notranslate"><span class="pre">factMemList</span></code> was <code class="docutils literal notranslate"><span class="pre">[1]</span></code> - both examples are variations on saying that we know <code class="docutils literal notranslate"><span class="pre">1!</span> <span class="pre">==</span> <span class="pre">1</span></code>, the original base case for <code class="docutils literal notranslate"><span class="pre">fact()</span></code>.</p>
+<p>Let’s flesh out the code for <code class="docutils literal notranslate"><span class="pre">factMemDict()</span></code>:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">factMemDict</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">factdict</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">factdict</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">factMemDict</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">factdict</span><span class="p">)</span>
+        <span class="n">factdict</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="n">n</span> <span class="o">*</span> <span class="n">factdict</span><span class="p">[</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">factdict</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">factMemDict</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span><span class="mi">1</span><span class="p">}))</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; {1: 1, 2: 2, 3: 6, 4: 24, 5: 120}
+</pre></div>
+</div>
+<p>As you can see, except for the penultimate dictionary-specific line, it’s virtually identical to <code class="docutils literal notranslate"><span class="pre">factMemList()</span></code>! There’s no reason not to split the function in exactly the same place. Pre-recursively, we wanted to seed each frame with the correct value of <code class="docutils literal notranslate"><span class="pre">n</span></code>. Post-recursively, we wanted to return the whole dictionary, after adding a new key-value pair with the computation against the <code class="docutils literal notranslate"><span class="pre">n</span></code> that belongs to each frame.</p>
+<p>As a side note, I want to point out that the code we’ve developed so far is a bit different from what you usually see in discussions of memoization, like this one:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">factMem</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">factdict</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">factdict</span><span class="p">[</span><span class="n">n</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">factdict</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="n">n</span> <span class="o">*</span> <span class="n">factMem</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">factdict</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">factdict</span><span class="p">[</span><span class="n">n</span><span class="p">]</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">factMem</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span><span class="mi">1</span><span class="p">}))</span>
+</pre></div>
+</div>
+<p>Run this code. What’s the difference? Which do you think is more useful?</p>
+<p>Honestly, whichever version you prefer, it doesn’t look like we’ve achieved much. Factorial is a linearly recursing algorithm, so we can’t improve its efficiency very much through memoization. But we now have a handle on what ‘memoizing’ an algorithm looks like. Let’s get back to where it does matter - <code class="docutils literal notranslate"><span class="pre">fib()</span></code>.</p>
+</div>
+<div class="section" id="memoizing-fibonacci">
+<h2>Memoizing Fibonacci<a class="headerlink" href="#memoizing-fibonacci" title="Permalink to this headline">¶</a></h2>
+<p>Given the Fibonacci sequence’s nature, we need dictionaries for the job and not lists, as we want to be able to look up existing values quickly (via their keys). So let’s convert our seeds 0 and 1 to a dictionary, <code class="docutils literal notranslate"><span class="pre">{0:0,</span> <span class="pre">1:1}</span></code>, and modify the base case accordingly:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">fibMem</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">fibdict</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">fibdict</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">fibdict</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># a bunch of code</span>
+
+<span class="n">fibdict</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>Since we are now using a dictionary, we also have to change our base case test. Rather than evaluating whether <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">==</span> <span class="pre">0</span> <span class="pre">or</span> <span class="pre">n</span> <span class="pre">==</span> <span class="pre">1</span></code> (or <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">&lt;</span> <span class="pre">2</span></code>), we see if <code class="docutils literal notranslate"><span class="pre">n</span></code> is already a key in the dictionary by asking <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">n</span> <span class="pre">in</span> <span class="pre">fibdict</span></code>. Since both 0 and 1 are in the dictionary by definition, we’ve got both base cases covered. Also, we are no longer returning an integer or a list, but the seed dictionary itself.</p>
+<p>Turning to the recursive case, we want to address both the pre-recursive and post-recursive parts. For the former, we want the correct value of <code class="docutils literal notranslate"><span class="pre">n</span></code> to be seeded in each frame. For the latter, we want to add each <code class="docutils literal notranslate"><span class="pre">n</span></code> as a new key to <code class="docutils literal notranslate"><span class="pre">fibdict</span></code>, and each freshly computed <code class="docutils literal notranslate"><span class="pre">fibmemdict(n)</span></code> as its corresponding value. As a one-shot, the dictionary syntax would look like this:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fibdict</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">:</span> <span class="mi">5</span><span class="p">}</span>
+<span class="n">fibdict</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="n">fibdict</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="o">+</span> <span class="n">fibdict</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">fibdict</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; {0: 0, 1: 1, 2: 1, 3: 2, 4: 3, 5: 5, 6: 8}
+</pre></div>
+</div>
+<p>It’s often a good idea to sketch out an iterative solution prior to the recursive one. We can look to the layout of <code class="docutils literal notranslate"><span class="pre">factMemDict()</span></code> to assert the iterative case:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">n</span> <span class="o">=</span> <span class="mi">6</span>
+<span class="n">fibdict</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="mi">1</span><span class="p">}</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+    <span class="n">fibdict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">fibdict</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">fibdict</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">2</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">fibdict</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; {0: 0, 1: 1, 2: 1, 3: 2, 4: 3, 5: 5, 6: 8}
+</pre></div>
+</div>
+<p>Pulling together the final code is actually as intuitive as you might hope. The same principles of ‘splitting the function’ apply here, and it’s simply a matter of substituting the factorial-generating dictionary operation with the Fibonacci-generating one:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">fibMem</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">fibdict</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">fibdict</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">fibdict</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">fibMem</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">fibdict</span><span class="p">)</span>
+        <span class="n">fibdict</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="n">fibdict</span><span class="p">[</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">fibdict</span><span class="p">[</span><span class="n">n</span> <span class="o">-</span> <span class="mi">2</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">fibdict</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">fibMem</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="mi">1</span><span class="p">}))</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; {0: 0, 1: 1, 2: 1, 3: 2, 4: 3, 5: 5, 6: 8, 7: 13, 8: 21}
+</pre></div>
+</div>
+<p>This shows how we can incrementally build a solution to a problem that may at first seem to be difficult to approach. Instead of trying to go straight from <code class="docutils literal notranslate"><span class="pre">fib()</span></code> to <code class="docutils literal notranslate"><span class="pre">fibMem()</span></code>, we stepped back, removing the distraction of <code class="docutils literal notranslate"><span class="pre">fib()</span></code>’s multiple recursive calls, and built simple solutions for factorial, first using lists and then, based on what we learned there, dictionaries. From there, we transferred that learning to <code class="docutils literal notranslate"><span class="pre">fibMem()</span></code>, addressing the unique attributes of the Fibonacci sequence while, at the same time, changing the fundamental structure of our algorithm only slightly. This kind of incremental development is a very useful skill indeed.</p>
+<p>Let’s contrast this with the code usually given for memoization of Fibonacci:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">fibMem2</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">fibdict</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">fibdict</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">fibdict</span><span class="p">[</span><span class="n">n</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">fibdict</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="n">fibMem2</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">fibMem2</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fibdict</span><span class="p">[</span><span class="n">n</span><span class="p">]</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">fibMem2</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="mi">1</span><span class="p">}))</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; 21
+</pre></div>
+</div>
+<p>Like the alternative example for factorial memoization, the output is not the entire dictionary, but just <code class="docutils literal notranslate"><span class="pre">fibMem2(8)</span></code>. Fair enough, if that’s all you need. And the complete dictionary is there - if you insert <code class="docutils literal notranslate"><span class="pre">print(fibdict)</span></code> right before the return statement you can have a peek. It’s just that you can’t get it out of the function - it gets discarded along with everything else once the final return of <code class="docutils literal notranslate"><span class="pre">fibdict[n]</span></code> occurs. In this way, it’s identical to how <code class="docutils literal notranslate"><span class="pre">tri</span></code> was behaving when we first tried to revise <code class="docutils literal notranslate"><span class="pre">pascal()</span></code>.</p>
+<p>Finally, recall the table at the end of the previous section that showed just how computationally expensive <code class="docutils literal notranslate"><span class="pre">fib()</span></code> was. Let’s add our latest results as a new column:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>                      fib(n)    fibmem()
+ n       fib(n)        calls       calls
+ 0            0            1           1
+ 1            1            1           1
+ 2            1            3           2
+ 3            2            5           3
+ 4            3            9           4
+ 5            5           15           5
+ 6            8           25           6
+ 7           13           41           7
+ 8           21           67           8
+ 9           34          109           9
+10           55          177          10
+11           89          287          11
+12          144          465          12
+13          233          753          13
+14          377        1,219          14
+15          610        1,973          15
+ …            …            …           …
+35    9,227,465   29,860,703          35
+</pre></div>
+</div>
+<p>As you can see, the number of times <code class="docutils literal notranslate"><span class="pre">fibMem()</span></code> calls itself remains steady at <code class="docutils literal notranslate"><span class="pre">n</span></code>, no matter how large of an <code class="docutils literal notranslate"><span class="pre">n</span></code> we choose. In other words, its computational complexity is linear, which is vastly preferable to exponential complexity of the ‘naive’ version.</p>
+<p>There are several other ways of integrating memoization into recursively expensive code. One is to leave the original recursive function untouched, and define another function to handle the memoization instead - a feature known as a ‘decorator’. Since this section has gone on long enough already, you can read more about decorators <a class="reference external" href="https://www.python-course.eu/python3_memoization.php">here</a>.</p>
+</div>
+<div class="section" id="heuristics-and-exercises">
+<h2>Heuristics and Exercises<a class="headerlink" href="#heuristics-and-exercises" title="Permalink to this headline">¶</a></h2>
+<p>♦ Reduce the complexity of the problem. Can you simplify it by removing a recursive call, by simulating what the memoized data structure should look like, or by using an iterative solution to model the computation?</p>
+<p>♦ Consider that the return statement will have to carry back the memoized data structure. What changes have to be made to the rest of the function - pre-recursive, post-recursive and the recursive call itself?</p>
+<p>♦ [something about how the base case and the return statement can be two different things - has this shown up yet? may need to be explicit in the text re: this]</p>
+<p><strong>Exercise:</strong> The Padovan sequence is defined as follows:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">f</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="n">f</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="n">f</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+<span class="n">f</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="o">==</span> <span class="n">f</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">f</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">3</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The first few numbers of the sequence are:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>[1, 1, 1, 2, 2, 3, 4, 5, 7, 9, 12, 16, 21, 28]
+</pre></div>
+</div>
+<p>Create a recursive function <code class="docutils literal notranslate"><span class="pre">padovan()</span></code> that returns the Padovan number for any given <code class="docutils literal notranslate"><span class="pre">n</span></code>. How would you write the base case? At what point does the sequence noticeably slow down?</p>
+<p>Now write a memoized version of the same algorithm, <code class="docutils literal notranslate"><span class="pre">padovanMem()</span></code>. As with the tribonacci exercise, apply the <code class="docutils literal notranslate"><span class="pre">timeit()</span></code> method to see how performance improves.</p>
+<p><strong>Exercise:</strong> The Collatz conjecture is known as the “hardest simple problem in mathematics”. For any positive number <em>n</em>, if <em>n</em> is even, <em>f(n) = n / 2</em>. If <em>n</em> is odd, <em>f(n) = 3</em> * <em>n + 1</em>. While it remains unproven, the conjecture states that after a finite number of operations <em>fn(n) = 1</em> for any positive number <em>n</em>.</p>
+<p>Whether or not the conjecture is true, the number of steps needed to reduce any given <code class="docutils literal notranslate"><span class="pre">n</span></code> to 1 is certainly unpredictable:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span> n        steps
+ 1          0
+ 2          1
+ 3          7
+ 4          2
+ 5          5
+ 6          8
+ 7         16
+ 8          3
+ 9         19
+10          6
+11         14
+12          9
+13          9
+14         17
+15         17
+16          4
+17         12
+18         20
+19         20
+20          7
+</pre></div>
+</div>
+<p>Write a recursive function <code class="docutils literal notranslate"><span class="pre">collatz()</span></code> that returns the integer that takes the greatest number of steps to reach 1 for a given range. For example, between 1 and 1,000,000, the integer 837,799 takes 524 steps to get to 1.</p>
+<p>You’ll see that to test for such a range takes a long amount of time. So write a second function, <code class="docutils literal notranslate"><span class="pre">collatzMem()</span></code>, that uses memoization to reduce the computation by an order of magnitude.</p>
+<p>This is a tricky problem. Here are some hints about how to break it down.</p>
+<ol class="arabic simple">
+<li>Write an iterative, brute force solution so you see how the function behaves.</li>
+<li>Write the recursive version.</li>
+<li>Go back to the iterative solution and write the memoized modification.</li>
+<li>Finally, synthesize a solution that is both recursive and memoized.</li>
+</ol>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Memoization: Fibonacci Sequence, Part 2</a><ul>
+<li><a class="reference internal" href="#memoizing-by-list">Memoizing by list</a></li>
+<li><a class="reference internal" href="#memoizing-by-dictionary">Memoizing by dictionary</a></li>
+<li><a class="reference internal" href="#memoizing-fibonacci">Memoizing Fibonacci</a></li>
+<li><a class="reference internal" href="#heuristics-and-exercises">Heuristics and Exercises</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="10 Fibonacci 1.html"
+                        title="previous chapter">Multiple Recursive Calls: Fibonacci Sequence, Part 1</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/11 Fibonacci 2.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="10 Fibonacci 1.html" title="Multiple Recursive Calls: Fibonacci Sequence, Part 1"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Understanding Recursion Using Python 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, panopticonopolis.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
+    </div>
+  </body>
+</html>

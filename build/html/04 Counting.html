@@ -1,0 +1,244 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Counting In Recursion &#8212; Understanding Recursion Using Python 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Recursion and Swapped Arguments" href="05 Swapped.html" />
+    <link rel="prev" title="Recursion in Light of Frames" href="03 Frames.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="05 Swapped.html" title="Recursion and Swapped Arguments"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="03 Frames.html" title="Recursion in Light of Frames"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Understanding Recursion Using Python 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="counting-in-recursion">
+<span id="counting"></span><h1>Counting In Recursion<a class="headerlink" href="#counting-in-recursion" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="steps-vs-frames">
+<h2>Steps vs Frames<a class="headerlink" href="#steps-vs-frames" title="Permalink to this headline">¶</a></h2>
+<p>As the exercise at the end of the previous section implied, counting in recursion is not as intuitive as it is, say, for iterative code. For the latter, it is easy to insert print statements at any point in a loop or any other construction, and quickly understand the state of computation at that point. Inserting counters and print statements into recursive code, however, yields some initially baffling results. Look at what happens if we try to print <code class="docutils literal notranslate"><span class="pre">n</span></code> every time the function is called:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">summ</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;n at top of summ() =&#39;</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">n</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">n</span> <span class="o">+</span> <span class="n">summ</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">summ</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; n at top of summ() = 4
+&gt;&gt;&gt; n at top of summ() = 3
+&gt;&gt;&gt; n at top of summ() = 2
+&gt;&gt;&gt; n at top of summ() = 1
+&gt;&gt;&gt; 10
+</pre></div>
+</div>
+<p>This is fine, but doesn’t really tell us anything we didn’t already know. (Also, it seems like something is missing - what do you think it is?). It’s more useful if we place the print statements based on where <code class="docutils literal notranslate"><span class="pre">n</span></code> occurs in the <code class="docutils literal notranslate"><span class="pre">if/else</span></code> block. Now we can see the exact value at which we hit the base case:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">summ</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;n at if =&#39;</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">n</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;n at else =&#39;</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">n</span> <span class="o">+</span> <span class="n">summ</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">summ</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; n at else = 4
+&gt;&gt;&gt; n at else = 3
+&gt;&gt;&gt; n at else = 2
+&gt;&gt;&gt; n at if = 1
+&gt;&gt;&gt; 10
+</pre></div>
+</div>
+<p>It would be more useful still if we could count the number of frames as they are generated. We can achieve this by using the rules of scope. Recall that any variable declared in the global frame is, by default, a global variable. So let’s create a variable <code class="docutils literal notranslate"><span class="pre">frame</span></code> that will keep track of things for us. In order for <code class="docutils literal notranslate"><span class="pre">summ()</span></code> to access it, we need to use the <code class="docutils literal notranslate"><span class="pre">global</span></code> keyword. This tells Python that the variable we are citing within the function is not a new one, but rather one that already exists in the global frame, and the interpreter should go find it there, instead of creating it within - and restricting it to the scope of - <code class="docutils literal notranslate"><span class="pre">summ()</span></code>.</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">frame</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;at global frame =&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="s1">&#39;n =&#39;</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">summ</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">frame</span>
+    <span class="n">frame</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;base case frame =&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="s1">&#39;n =&#39;</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">n</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;recursive frame =&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="s1">&#39;n =&#39;</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">n</span> <span class="o">+</span> <span class="n">summ</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">summ</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; at global frame = 0 n = 4
+&gt;&gt;&gt; recursive frame = 1 n = 4
+&gt;&gt;&gt; recursive frame = 2 n = 3
+&gt;&gt;&gt; recursive frame = 3 n = 2
+&gt;&gt;&gt; base case frame = 4 n = 1
+&gt;&gt;&gt; 10
+</pre></div>
+</div>
+<p>Using global variables is generally regarded as a suspect practice, since you can modify the variable from inside a function. If another function is relying on that global variable to stay constant, then this can cause some unpredictable and difficult-to-trace behavior. Fortunately, in this case modifying the global variable is exactly what we want.</p>
+<p>Now we know how many frames there are, and the exact value of the argument <code class="docutils literal notranslate"><span class="pre">n</span></code> being passed from frame to frame. Things are looking hopeful. The problem with all of these examples, however, is that we are seeing only half the picture. What about after the base case, when the recursive cascade reverses and clears up all the unresolved computations? How do we access all of the post-recursive goodness we know is hiding in there?</p>
+</div>
+<div class="section" id="counting-the-post-recursive-cascade">
+<h2>Counting the post-recursive cascade<a class="headerlink" href="#counting-the-post-recursive-cascade" title="Permalink to this headline">¶</a></h2>
+<p>It would be great to see the values of <code class="docutils literal notranslate"><span class="pre">n</span></code> and the reversed order of frames printed to the console as well. As it stands, we can guess that the number of steps would equal the number of pre-recursive calls where an <code class="docutils literal notranslate"><span class="pre">else</span></code> statement is triggered, but as we look at more complex examples of recursion, this hypothesis will become difficult to verify, to put it kindly.</p>
+<p>The rub is in the final line:</p>
+<blockquote>
+<div><code class="docutils literal notranslate"><span class="pre">return</span> <span class="pre">n</span> <span class="pre">+</span> <span class="pre">summ(n</span> <span class="pre">-</span> <span class="pre">1)</span></code></div></blockquote>
+<p>That is, both the <code class="docutils literal notranslate"><span class="pre">return</span></code> statement and the recursive call occupy the same line. Each result returned from the previous frame is immediately added to <code class="docutils literal notranslate"><span class="pre">n</span></code> and returned again, until we reach the global frame. So there’s literally no opportunity for our print statements to record any of these computations.</p>
+<p>We can fix this by putting some daylight between the recursive call and the return with a simple little intervention:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span> <span class="n">frame</span> <span class="o">=</span> <span class="mi">0</span>
+ <span class="n">n</span> <span class="o">=</span> <span class="mi">4</span>
+ <span class="k">print</span><span class="p">(</span><span class="s1">&#39;at global frame =&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="s1">&#39;n =&#39;</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+
+ <span class="k">def</span> <span class="nf">summ</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+     <span class="k">global</span> <span class="n">frame</span>
+     <span class="n">frame</span> <span class="o">+=</span> <span class="mi">1</span>
+     <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+         <span class="k">print</span><span class="p">(</span><span class="s1">&#39;base case frame =&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="s1">&#39;n =&#39;</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+         <span class="k">return</span> <span class="n">n</span>
+     <span class="k">else</span><span class="p">:</span>
+         <span class="k">print</span><span class="p">(</span><span class="s1">&#39;recursive frame =&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="s1">&#39;n =&#39;</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+<span class="hll">         <span class="n">r</span> <span class="o">=</span> <span class="n">summ</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+</span><span class="hll">         <span class="n">frame</span> <span class="o">-=</span> <span class="mi">1</span>
+</span><span class="hll">         <span class="k">print</span><span class="p">(</span><span class="s1">&#39;recursive frame =&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="s1">&#39;n =&#39;</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="s1">&#39;r =&#39;</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span>
+</span><span class="hll">         <span class="k">return</span> <span class="n">n</span> <span class="o">+</span> <span class="n">r</span>
+</span>
+ <span class="k">print</span><span class="p">(</span><span class="n">summ</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; at global frame = 0 n = 4
+&gt;&gt;&gt; recursive frame = 1 n = 4
+&gt;&gt;&gt; recursive frame = 2 n = 3
+&gt;&gt;&gt; recursive frame = 3 n = 2
+&gt;&gt;&gt; base case frame = 4 n = 1
+&gt;&gt;&gt; recursive frame = 3 n = 2 r = 1
+&gt;&gt;&gt; recursive frame = 2 n = 3 r = 3
+&gt;&gt;&gt; recursive frame = 1 n = 4 r = 6
+&gt;&gt;&gt; 10
+</pre></div>
+</div>
+<p>By taking the returned result and binding it to a variable <code class="docutils literal notranslate"><span class="pre">r</span></code>, we have the chance to not only print that value, but also get the correct frame. Also keep in mind that <code class="docutils literal notranslate"><span class="pre">r</span></code> represents the returned result from the previous, called frame - it is what is being added to <code class="docutils literal notranslate"><span class="pre">n</span></code>, but is not what is being passed on. This is why you have to wait until the global frame to see the final answer.</p>
+<p>This trick of breaking apart the return statement is extremely handy when you want to peek into what is being returned during the post-recursive portion of the cascade. I’ll be using <code class="docutils literal notranslate"><span class="pre">r</span></code> (which stands for ‘recursion’, naturally) throughout this guide.</p>
+<p>At first glance it may seem redundant to have two print statements in the <code class="docutils literal notranslate"><span class="pre">else</span></code> clause but it’s not. As described at the end of <a class="reference internal" href="03 Frames.html#frames"><span class="std std-ref">Recursion in Light of Frames</span></a>, the complete execution of any recursive function is split into at least two parts: what happens before the recursive call, and what happens afterwards. Here, all the print statements up to and including <code class="docutils literal notranslate"><span class="pre">base</span> <span class="pre">case</span> <span class="pre">frame</span> <span class="pre">=</span> <span class="pre">4</span> <span class="pre">n</span> <span class="pre">=</span> <span class="pre">1</span></code> represent the first, pre-recursive part of the function. All the print statements <em>after</em> the spot where the <code class="docutils literal notranslate"><span class="pre">return</span></code> statement inserts its result represent the post-recursive part of the function’s top-to-bottom execution.</p>
+<p>This is why we need to add <code class="docutils literal notranslate"><span class="pre">frame</span> <span class="pre">-=</span> <span class="pre">1</span></code> after <code class="docutils literal notranslate"><span class="pre">r</span> <span class="pre">=</span> <span class="pre">summ(n</span> <span class="pre">-</span> <span class="pre">1)</span></code>. We want to capture our actions as we rewind our way back through the series of open frames. We already have  <code class="docutils literal notranslate"><span class="pre">frame</span> <span class="pre">+=</span> <span class="pre">1</span></code> at the top of the function, which counts every frame created on the way to the base case. If we’d continued to increment by inserting <code class="docutils literal notranslate"><span class="pre">frame</span> <span class="pre">+=</span> <span class="pre">1</span></code> after the recursive call, we would have gotten the total number of steps but we would have lost track of which frame we were in, hence <code class="docutils literal notranslate"><span class="pre">frame</span> <span class="pre">-=</span> <span class="pre">1</span></code>.</p>
+<p><strong>Question:</strong> What do you think happens if you remove <code class="docutils literal notranslate"><span class="pre">frame</span> <span class="pre">-=</span> <span class="pre">1</span></code> from the code? Try it out. What’s the reason for this behavior? Does it break the rules of a function’s state? Why not?</p>
+<p>By expanding the ‘return + recursive call’ one-liner, we can now access the complete narrative of the algorithm: the state of each frame as the recursive cascade proceeds both inward, from the global frame towards the base case frame, and back outward, as the paused computations in each open frame are completed. The code is decidedly less elegant than the original, but hopefully the printout makes it less mystifying. Knowing where to place print statements to answer specific questions will help you learn to read recursive algorithms more fluently.</p>
+</div>
+<div class="section" id="heuristics-and-exercises">
+<h2>Heuristics and Exercises<a class="headerlink" href="#heuristics-and-exercises" title="Permalink to this headline">¶</a></h2>
+<p>♦ In recursion, counting frames is usually more important than counting steps.</p>
+<p>♦ Being able to separate the pre-recursive and post-recursive state of a function (and the accompanying namespaces for variables) is essential to understanding how a recursive cascade unfolds.</p>
+<p>♦ When a function’s recursive call is part of the <code class="docutils literal notranslate"><span class="pre">return</span></code> statement, break the two apart by introducing an intermediate variable. This provides the opportunity to inspect the value actually being returned from the called frame.</p>
+<p><strong>Exercise:</strong> Revisit your factorial solution fom the previous section and apply the above techniques to get the full recursive narrative. What else can you print that would be useful information?</p>
+<p><strong>Exercise:</strong> Consider the following function <code class="docutils literal notranslate"><span class="pre">decToBin()</span></code>, which recursively converts a decimal number to its binary equivalent. Add print statements and global variable to track frames so that you can see what the code is doing at each step.</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">decToBin</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">n</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">decToBin</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">n</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">decToBin</span><span class="p">(</span><span class="mi">7</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Counting In Recursion</a><ul>
+<li><a class="reference internal" href="#steps-vs-frames">Steps vs Frames</a></li>
+<li><a class="reference internal" href="#counting-the-post-recursive-cascade">Counting the post-recursive cascade</a></li>
+<li><a class="reference internal" href="#heuristics-and-exercises">Heuristics and Exercises</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="03 Frames.html"
+                        title="previous chapter">Recursion in Light of Frames</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="05 Swapped.html"
+                        title="next chapter">Recursion and Swapped Arguments</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/04 Counting.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="05 Swapped.html" title="Recursion and Swapped Arguments"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="03 Frames.html" title="Recursion in Light of Frames"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Understanding Recursion Using Python 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, panopticonopolis.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
+    </div>
+  </body>
+</html>

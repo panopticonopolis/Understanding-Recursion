@@ -1,0 +1,277 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Scope, Frame and Stack &#8212; Understanding Recursion Using Python 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Introduction: Another Guide To Recursion? And Why Is It So Long?" href="Introduction.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="Introduction.html" title="Introduction: Another Guide To Recursion? And Why Is It So Long?"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Understanding Recursion Using Python 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="scope-frame-and-stack">
+<h1>Scope, Frame and Stack<a class="headerlink" href="#scope-frame-and-stack" title="Permalink to this headline">¶</a></h1>
+<p>The most common way of introducing recursion to programmers involves two seemingly simple steps. Given a programming language that allows for the definition of functions that can call themselves, a recursive solution involves two principal parts:</p>
+<ol class="arabic simple">
+<li>Identify the base case</li>
+<li>Identify the recursive case</li>
+</ol>
+<p>One formulates these two cases by successfully reducing the problem at hand to ‘its simplest possible solution’, whatever that means.</p>
+<p>This, as the saying goes, is necessary but not sufficient, and there remains much that needs to be unpacked. The purpose of this guide is to provide the reader with a toolbox of heuristics that can be used to quickly analyze a recursive algorithm. Once the reader is comfortable with analysis, the same set of heuristics can be applied to thinking about a problem recursively, and constructing a solution.</p>
+<p>Recursion is commonly introduced to students within the context of iterative procedures, especially for loops, ‘but with functions’. This is the first source of misunderstanding. I claim that recursion is better considered through understanding functional scope, frames and the stack. Put differently, we can understand recursion when we understand how functions prioritize, quarantine, and share values bound to variables and the evaluation of expressions (scope), and the way those spaces are created and then discarded (frames added to and subtracted from the stack).</p>
+<p>Just about the simplest program we can write is:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span>s = &quot;Hello, World!&quot;
+print(s)
+
+&gt;&gt;&gt; Hello, World!
+</pre></div>
+</div>
+<p>In this program, there is only one frame in the stack, known as the global frame. We could add a few more variables and statements and what not, and everything would still belong to this global frame. That is, all variables and their associated values would be just as available to any further statement we choose to write (although variables used for iterating over loops don’t have this sort of permanence).</p>
+<p>This changes when we introduce functions. For every time we call (as opposed to merely define) a function, a new frame is created, and is added to the stack. Importantly, the accessibility of that function’s variables, known as scope, is regulated by virtue of being inside that specific frame.</p>
+<p>For example, if we write</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">foo</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">x</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="mi">12</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">foo</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>We will get:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="mi">12</span>
+</pre></div>
+</div>
+<p>Easy enough. But consider that we get the same result if we write:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">foo</span><span class="p">(</span><span class="n">y</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">y</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="mi">12</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">foo</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Or even if we write:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">foo</span><span class="p">(</span><span class="n">y</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">x</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="mi">12</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">foo</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>This is a consequence of scope. When we first specify <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">12</span></code> we do it at the top-level, or global frame of the program. When we pass <code class="docutils literal notranslate"><span class="pre">x</span></code> to <code class="docutils literal notranslate"><span class="pre">foo()</span></code>, the function’s parameter doesn’t care what <code class="docutils literal notranslate"><span class="pre">x</span></code> is called, but only that it is of the correct type so that it can perform its computation. Once the argument is passed into the function, we <em>must</em> refer to it within the function as it was named in the function definition, ie, <code class="docutils literal notranslate"><span class="pre">foo(y)</span></code>.</p>
+<p>[include a visualization of the stack, perhaps a better metaphor - is ther anything better than cafeteria trays?]</p>
+<p>This is because the invocation of <code class="docutils literal notranslate"><span class="pre">foo()</span></code> creates its own frame on the stack, one that now has ‘local’ scope. (Note that the function has to be called or invoked - simply defining a function doesn’t create a new frame). Within that frame, <code class="docutils literal notranslate"><span class="pre">y</span></code> is a local variable that exists <em>only</em> within the function. Once the function’s work is finished, <code class="docutils literal notranslate"><span class="pre">y</span></code> and all other local variables are destroyed - you can verify this by attempting to <code class="docutils literal notranslate"><span class="pre">print(y)</span></code> outside of the function. Even if you invoke <code class="docutils literal notranslate"><span class="pre">print(y)</span></code> after the function has returned <code class="docutils literal notranslate"><span class="pre">y</span></code>, you’ll get an error. So why does <code class="docutils literal notranslate"><span class="pre">return</span> <span class="pre">x</span></code> not throw an error?</p>
+<p>When we declared <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">12</span></code> we did so in the global frame. As such, it is a global variable. This means that <code class="docutils literal notranslate"><span class="pre">x</span></code> will be available to all statements and expressions in that frame (such as <code class="docutils literal notranslate"><span class="pre">print(foo(x))</span></code>), but also to any frame that originates from the global frame, like the one generated when we called <code class="docutils literal notranslate"><span class="pre">foo()</span></code>. In other words, if Python is executing <code class="docutils literal notranslate"><span class="pre">foo()</span></code> and comes across a variable that is not stated inside <code class="docutils literal notranslate"><span class="pre">foo()</span></code>, it will look outside the scope and, if it finds <code class="docutils literal notranslate"><span class="pre">x</span></code>, it will use it (of course, if it doesn’t, it will throw an error).</p>
+<p>So if we were really only interested in accessing the global variable <code class="docutils literal notranslate"><span class="pre">x</span></code> we could forego passing any argument at all, although that doesn’t seem very useful:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">foo</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">x</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">foo</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>It stands to reason, then, that global and local variables retain their separate identities, even if they share a name:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">foo</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;in foo(), f =&#39;</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+
+<span class="n">f</span> <span class="o">=</span> <span class="mi">12</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">foo</span><span class="p">(</span><span class="n">f</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;in global frame, f =&#39;</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="ow">in</span> <span class="n">foo</span><span class="p">(),</span> <span class="n">f</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="ow">in</span> <span class="k">global</span> <span class="n">frame</span><span class="p">,</span> <span class="n">f</span> <span class="o">=</span> <span class="mi">12</span>
+</pre></div>
+</div>
+<p>Here, the <code class="docutils literal notranslate"><span class="pre">f</span></code> printed inside the function is the local variable. Python won’t look any further than it has to.</p>
+<div class="section" id="nested-functions-are-nested-frames">
+<h2>Nested Functions are Nested Frames<a class="headerlink" href="#nested-functions-are-nested-frames" title="Permalink to this headline">¶</a></h2>
+<p>As you might suspect, frames can be nested. Here, <code class="docutils literal notranslate"><span class="pre">foo2()</span></code> is a function defined within the function <code class="docutils literal notranslate"><span class="pre">foo()</span></code>, something also known as a ‘helper function’:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">foo</span><span class="p">():</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="s2">&quot;I&#39;m enclosed&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;in foo(), f says&#39;</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">foo2</span><span class="p">():</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="s2">&quot;I&#39;m local&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;in foo2(), f says,&#39;</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">foo2</span><span class="p">())</span>
+
+
+<span class="n">f</span> <span class="o">=</span> <span class="s2">&quot;I&#39;m global&quot;</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;in global frame, f says,&#39;</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">foo</span><span class="p">())</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="ow">in</span> <span class="k">global</span> <span class="n">frame</span><span class="p">,</span> <span class="n">f</span> <span class="n">says</span><span class="p">,</span> <span class="n">I</span><span class="s1">&#39;m global</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="ow">in</span> <span class="n">foo</span><span class="p">(),</span> <span class="n">f</span> <span class="n">says</span> <span class="n">I</span><span class="s1">&#39;m enclosed</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="ow">in</span> <span class="n">foo2</span><span class="p">(),</span> <span class="n">f</span> <span class="n">says</span><span class="p">,</span> <span class="n">I</span><span class="s1">&#39;m local</span>
+</pre></div>
+</div>
+<p>In the case of <code class="docutils literal notranslate"><span class="pre">f</span></code> in <code class="docutils literal notranslate"><span class="pre">foo()</span></code> we say it is an enclosed variable, since <code class="docutils literal notranslate"><span class="pre">foo()</span></code> is a wrapper for another function. The separation of local vs enclosed vs global allows each <code class="docutils literal notranslate"><span class="pre">f</span></code> to be printed correctly.</p>
+<p>And just as we can call a global variable from a local frame, we can call an enclosed variable from a local frame, as long as the latter is wrapped into the former:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">foo</span><span class="p">():</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="s2">&quot;I&#39;m enclosed&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;in foo(), g says&#39;</span><span class="p">,</span> <span class="n">g</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">foo2</span><span class="p">():</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="s2">&quot;I&#39;m local&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;in foo2(), g says,&#39;</span><span class="p">,</span> <span class="n">g</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;from foo2(), f still says,&#39;</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">foo2</span><span class="p">())</span>
+
+<span class="n">f</span> <span class="o">=</span> <span class="s2">&quot;I&#39;m global&quot;</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;in global frame, f says,&#39;</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">foo</span><span class="p">())</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="ow">in</span> <span class="k">global</span> <span class="n">frame</span><span class="p">,</span> <span class="n">f</span> <span class="n">says</span><span class="p">,</span> <span class="n">I</span><span class="s1">&#39;m global</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="ow">in</span> <span class="n">foo</span><span class="p">(),</span> <span class="n">g</span> <span class="n">says</span> <span class="n">I</span><span class="s1">&#39;m enclosed</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="ow">in</span> <span class="n">foo2</span><span class="p">(),</span> <span class="n">g</span> <span class="n">says</span><span class="p">,</span> <span class="n">I</span><span class="s1">&#39;m enclosed</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">foo2</span><span class="p">(),</span> <span class="n">f</span> <span class="n">still</span> <span class="n">says</span><span class="p">,</span> <span class="n">I</span><span class="s1">&#39;m global</span>
+</pre></div>
+</div>
+<p>The last print statement also shows that we can access the global frame, no matter how deeply nested we are. This is true for any frame, as long as there is a direct line of succession through which we can travel.</p>
+<p>It’s important to note in the above example above how <code class="docutils literal notranslate"><span class="pre">foo2()</span></code> is called. The call doesn’t happen in the global frame, but via <code class="docutils literal notranslate"><span class="pre">foo()</span></code>’s frame! Try this code and see what happens:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">foo</span><span class="p">():</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="s2">&quot;I&#39;m enclosed&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;in foo(), g says&#39;</span><span class="p">,</span> <span class="n">g</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">foo2</span><span class="p">():</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="s2">&quot;I&#39;m local&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;in foo2(), g says,&#39;</span><span class="p">,</span> <span class="n">g</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;from foo2(), f still says,&#39;</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+
+<span class="n">f</span> <span class="o">=</span> <span class="s2">&quot;I&#39;m global&quot;</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;in global frame, f says,&#39;</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">foo</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">foo2</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>In order for <code class="docutils literal notranslate"><span class="pre">foo2()</span></code> to be accessible, we have to call it from the frame that contains its definition. This makes sense, because what’s the difference between asking for <code class="docutils literal notranslate"><span class="pre">foo2()</span></code> from the global frame, and asking for the variable <code class="docutils literal notranslate"><span class="pre">g</span></code> in <code class="docutils literal notranslate"><span class="pre">foo()</span></code>? None; both are locked away inside the scope that can only be accessed by invoking <code class="docutils literal notranslate"><span class="pre">foo()</span></code>. By the same token, then, whatever <code class="docutils literal notranslate"><span class="pre">foo2()</span></code> returns will be returned <em>to the frame that called it</em>.</p>
+<p>I’m belaboring this point because frames and scopes are implied and as such can be somewhat invisible. If you’re careless with your variable names or call order you may experience unintended consequences. But it’s also impossible to understand recursion without understanding - and keeping track of - frame and scope.</p>
+<p>As an extremely artificial example, consider this series of nested functions:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">foo1</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">foo2</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+
+        <span class="k">def</span> <span class="nf">foo3</span><span class="p">(</span><span class="n">z</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">z</span>
+
+        <span class="k">return</span> <span class="n">foo3</span><span class="p">()</span> <span class="o">+</span> <span class="n">y</span>
+
+    <span class="k">return</span> <span class="n">foo2</span><span class="p">()</span> <span class="o">+</span> <span class="n">x</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">foo1</span><span class="p">())</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="mi">6</span>
+</pre></div>
+</div>
+<p>There are four successively nested frames here:</p>
+<ol class="arabic simple">
+<li>the first, global frame, which contains <code class="docutils literal notranslate"><span class="pre">print(foo1())</span></code> and the definition of <code class="docutils literal notranslate"><span class="pre">foo1()</span></code></li>
+<li>the second, containing <code class="docutils literal notranslate"><span class="pre">foo1()</span></code> and all of its variables and methods, including the definition of <code class="docutils literal notranslate"><span class="pre">foo2()</span></code></li>
+<li>the third, containing <code class="docutils literal notranslate"><span class="pre">foo2()</span></code> and all of its variables and methods, including the definition of <code class="docutils literal notranslate"><span class="pre">foo3()</span></code></li>
+<li>the fourth, containing <code class="docutils literal notranslate"><span class="pre">foo3()</span></code> and all of its variables and methods</li>
+</ol>
+<p>[ZW: good to make a note that the value of n gets updated with every successive frame until the final (step 3) is executed. otherwise, I’m wondering why n values in step 1,2,and 3 aren’t summed]</p>
+<p>Executing the statements in each frame draws us further into the next one, until we get to the innermost frame, <code class="docutils literal notranslate"><span class="pre">foo3()</span></code>. At that point, we return the value of <code class="docutils literal notranslate"><span class="pre">z</span></code> to <code class="docutils literal notranslate"><span class="pre">foo2()</span></code>, which in turn makes the final statement of <code class="docutils literal notranslate"><span class="pre">foo2()</span></code> read:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">return</span> <span class="n">foo3</span><span class="p">()</span> <span class="o">+</span> <span class="n">y</span> <span class="o">==</span> <span class="k">return</span> <span class="n">z</span> <span class="o">+</span> <span class="n">y</span> <span class="o">==</span> <span class="k">return</span> <span class="mi">3</span> <span class="o">+</span> <span class="n">y</span>
+</pre></div>
+</div>
+<p>This is then repeated for the <code class="docutils literal notranslate"><span class="pre">foo1()</span></code> and global frames, respectively.</p>
+<p>Of course we would never write code like this for such a simple computation, but the idea is not so dissimilar from what happens in the course of recursion.</p>
+<p>This is also why the comparisons between procedural/iterative and recursive solutions are limited at best. Of course, in many cases it’s possible to write both a recursive and an iterative solution to the same problem, and we’ll see solutions that combine both techniques. But the dependence of iteration on frame/scope, at least within a function’s internal workings, is fairly minimal, whereas frame/scope is essential to understanding the basic mechanism of recursion.</p>
+<p>To summarize this brief discussion: Beyond allowing us to distinguish global, enclosed and local variables, frames fulfill a crucial role in setting boundaries around computation. Aside from its inputs and outputs, what happens inside a function stays inside the function, generally speaking. Frames create privacy and state for each function - at the moment a function is invoked, it will have certain arguments passed to it, and once that function computes and returns its results, its frame and associated data will be discarded. Every invocation always creates a new frame (and possibly a unique state).</p>
+<p>Most importantly for recursion, the frame tells us what the state of an invoked function will be. This originating frame persists in its own state until the results of the called function are returned to the exact place where the call originally occurred. It’s only at that point that the originating frame carries on with its own computation.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Scope, Frame and Stack</a><ul>
+<li><a class="reference internal" href="#nested-functions-are-nested-frames">Nested Functions are Nested Frames</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="Introduction.html"
+                        title="previous chapter">Introduction: Another Guide To Recursion? And Why Is It So Long?</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/Scope, Frame and Stack.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="Introduction.html" title="Introduction: Another Guide To Recursion? And Why Is It So Long?"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Understanding Recursion Using Python 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, panopticonopolis.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
+    </div>
+  </body>
+</html>

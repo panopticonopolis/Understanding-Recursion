@@ -1,0 +1,225 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Understanding Recursion Using Python &#8212; Understanding Recursion Using Python 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Introduction: Another Guide To Recursion? And Why Is It So Long?" href="01 Introduction.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="01 Introduction.html" title="Introduction: Another Guide To Recursion? And Why Is It So Long?"
+             accesskey="N">next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">Understanding Recursion Using Python 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="understanding-recursion-using-python">
+<h1>Understanding Recursion Using Python<a class="headerlink" href="#understanding-recursion-using-python" title="Permalink to this headline">¶</a></h1>
+<p><strong>A shamelessly verbose guide to the wonders of recursion</strong></p>
+<div class="section" id="getting-started">
+<h2>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
+<p>This is a guide for beginning and perhaps intermediate programmers for understanding how recursion actually works. It uses Python 3.6 but the universal presence of recursion should make this broadly applicable. The idea is to provide a framework for how to ‘think recursively’ when confronted with problems that demand (or simply favor) recursive solutions.</p>
+<p>Sometimes I’ll present the code immediately, and proceed to unpack it. Other times, we’ll work towards the final recursive solution starting only from first principles. At the end of each section I deduce a few heuristics, and include an exercise or two that will apply the material and push comprehension a bit further.</p>
+<div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="01 Introduction.html">Introduction: Another Guide To Recursion? And Why Is It So Long?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="02 Scope, Frame and Stack.html">Scope, Frame and Stack</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="02 Scope, Frame and Stack.html#understanding-how-functions-work">Understanding how functions work</a></li>
+<li class="toctree-l2"><a class="reference internal" href="02 Scope, Frame and Stack.html#nested-functions-are-nested-frames">Nested functions are nested frames</a></li>
+<li class="toctree-l2"><a class="reference internal" href="02 Scope, Frame and Stack.html#functional-state-and-namespaces">Functional state and namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="02 Scope, Frame and Stack.html#heuristics">Heuristics</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="03 Frames.html">Recursion in Light of Frames</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="03 Frames.html#my-first-recursive-code">My first recursive code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="03 Frames.html#understanding-recursion-as-a-process">Understanding recursion as a process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="03 Frames.html#heuristics-and-exercises">Heuristics and Exercises</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="04 Counting.html">Counting In Recursion</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="04 Counting.html#steps-vs-frames">Steps vs Frames</a></li>
+<li class="toctree-l2"><a class="reference internal" href="04 Counting.html#counting-the-post-recursive-cascade">Counting the post-recursive cascade</a></li>
+<li class="toctree-l2"><a class="reference internal" href="04 Counting.html#heuristics-and-exercises">Heuristics and Exercises</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="05 Swapped.html">Recursion and Swapped Arguments</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="05 Swapped.html#doing-it-euclid-s-way">Doing it Euclid’s way</a></li>
+<li class="toctree-l2"><a class="reference internal" href="05 Swapped.html#heuristics-and-exercises">Heuristics and Exercises</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="06 Palindromes.html">Palindromes and Recursion-as-Evaluation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="06 Palindromes.html#applying-recursion-to-strings">Applying recursion to strings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="06 Palindromes.html#multiple-base-cases">Multiple base cases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="06 Palindromes.html#heuristics-and-exercises">Heuristics and Exercises</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="07 Lists of Lists.html">Summing a List of Lists</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="07 Lists of Lists.html#recursion-but-only-when-it-s-needed">Recursion…but only when it’s needed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="07 Lists of Lists.html#computing-values-inside-each-recursive-frame">Computing values inside each recursive frame</a></li>
+<li class="toctree-l2"><a class="reference internal" href="07 Lists of Lists.html#where-s-the-base-case">Where’s the base case?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="07 Lists of Lists.html#using-recursion-for-directory-listing">Using recursion for directory listing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="07 Lists of Lists.html#heuristics-and-exercises">Heuristics and Exercises</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="08 Power Set.html">Using Recursion to Make More: The Power Set</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="08 Power Set.html#thinking-before-coding">Thinking before coding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="08 Power Set.html#the-right-seed-in-the-right-frame">The right seed in the right frame</a></li>
+<li class="toctree-l2"><a class="reference internal" href="08 Power Set.html#heuristics-and-exercises">Heuristics and Exercises</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="09 Pascal.html">Expanding a Series: Pascal’s Triangle</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="09 Pascal.html#returning-the-nth-layer">Returning the <em>nth</em> layer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="09 Pascal.html#returning-the-entire-series">Returning the entire series</a></li>
+<li class="toctree-l2"><a class="reference internal" href="09 Pascal.html#heuristics-and-exercises">Heuristics and Exercises</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="10 Fibonacci 1.html">Multiple Recursive Calls: Fibonacci Sequence, Part 1</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="10 Fibonacci 1.html#introducing-multiple-recursive-calls">Introducing multiple recursive calls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="10 Fibonacci 1.html#measuring-efficiency-and-complexity">Measuring efficiency and complexity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="10 Fibonacci 1.html#heuristics-and-exercises">Heuristics and Exercises</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="11 Fibonacci 2.html">Memoization: Fibonacci Sequence, Part 2</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="11 Fibonacci 2.html#memoizing-by-list">Memoizing by list</a></li>
+<li class="toctree-l2"><a class="reference internal" href="11 Fibonacci 2.html#memoizing-by-dictionary">Memoizing by dictionary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="11 Fibonacci 2.html#memoizing-fibonacci">Memoizing Fibonacci</a></li>
+<li class="toctree-l2"><a class="reference internal" href="11 Fibonacci 2.html#heuristics-and-exercises">Heuristics and Exercises</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="12 Search and Sort.html">Recursive Approaches To Searching And Sorting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="12 Search and Sort.html#searching-by-bisecting-the-search-space">Searching by bisecting the search space</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12 Search and Sort.html#sorting-things-out-mergesort">Sorting things out: <code class="docutils literal notranslate"><span class="pre">mergeSort()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="12 Search and Sort.html#heuristics-and-exercises">Heuristics and Exercises</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="13 Koch Curves.html">Recursion and Self-Similarity: Koch Curves</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="13 Koch Curves.html#turtles-all-the-way-down">Turtles all the way down</a></li>
+<li class="toctree-l2"><a class="reference internal" href="13 Koch Curves.html#tracing-the-recursive-calls">Tracing the recursive calls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="13 Koch Curves.html#the-koch-snowflake">The Koch snowflake</a></li>
+<li class="toctree-l2"><a class="reference internal" href="13 Koch Curves.html#heuristics-and-exercises">Heuristics and Exercises</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="14 Sierpinski.html">The Sierpinski Triangle</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="14 Sierpinski.html#setting-up-the-problem">Setting up the problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="14 Sierpinski.html#midpoints-of-midpoints">Midpoints of midpoints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="14 Sierpinski.html#determining-the-order-of-drawing">Determining the order of drawing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="14 Sierpinski.html#stepping-through-the-code">Stepping through the code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="14 Sierpinski.html#heuristics-and-exercises">Heuristics and Exercises</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="15 L-System.html">Lindenmayer Systems</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="15 L-System.html#a-different-way-of-generating-fractals">A different way of generating fractals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="15 L-System.html#exercises">Exercises</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="16 L-System Solution.html">Solving L-System Recursion</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="16 L-System Solution.html#recursive-version-of-a-koch-curve-l-system">Recursive version of a Koch curve L-system</a></li>
+<li class="toctree-l2"><a class="reference internal" href="16 L-System Solution.html#implementing-absolute-distance">Implementing absolute distance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="16 L-System Solution.html#recursively-finding-a-target-string">Recursively finding a target string</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="17 Hanoi.html">Boss Level: The Tower of Hanoi</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="17 Hanoi.html#put-the-algorithm-in-your-hands">Put the algorithm in your hands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="17 Hanoi.html#filling-in-the-binary-tree">Filling in the binary tree</a></li>
+<li class="toctree-l2"><a class="reference internal" href="17 Hanoi.html#designing-the-recursive-calls">Designing the recursive calls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="17 Hanoi.html#why-does-it-work">Why does it work?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="17 Hanoi.html#heuristics-and-exercises">Heuristics and Exercises</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
+<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Understanding Recursion Using Python</a><ul>
+<li><a class="reference internal" href="#getting-started">Getting Started</a></li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Next topic</h4>
+  <p class="topless"><a href="01 Introduction.html"
+                        title="next chapter">Introduction: Another Guide To Recursion? And Why Is It So Long?</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="01 Introduction.html" title="Introduction: Another Guide To Recursion? And Why Is It So Long?"
+             >next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">Understanding Recursion Using Python 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, panopticonopolis.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
+    </div>
+  </body>
+</html>

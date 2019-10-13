@@ -1,0 +1,431 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Recursive Approaches To Searching And Sorting &#8212; Understanding Recursion Using Python 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Recursion and Self-Similarity: Koch Curves" href="13 Koch Curves.html" />
+    <link rel="prev" title="Memoization: Fibonacci Sequence, Part 2" href="11 Fibonacci 2.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="13 Koch Curves.html" title="Recursion and Self-Similarity: Koch Curves"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="11 Fibonacci 2.html" title="Memoization: Fibonacci Sequence, Part 2"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Understanding Recursion Using Python 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="recursive-approaches-to-searching-and-sorting">
+<span id="search-and-sort"></span><h1>Recursive Approaches To Searching And Sorting<a class="headerlink" href="#recursive-approaches-to-searching-and-sorting" title="Permalink to this headline">¶</a></h1>
+<p>Programmers spend a lot of time looking for some things and sorting other things. We’ll first look at how recursion can help us to find an item in a list. After that, we’ll explore one of the better ways of taking a list and sorting it. This may seem backwards - after all, doesn’t it make sense to sort a collection of values before you search for it? Just bear with me.</p>
+<div class="section" id="searching-by-bisecting-the-search-space">
+<h2>Searching by bisecting the search space<a class="headerlink" href="#searching-by-bisecting-the-search-space" title="Permalink to this headline">¶</a></h2>
+<p>Say I gave you a list of items <code class="docutils literal notranslate"><span class="pre">L</span></code> and assured you that <code class="docutils literal notranslate"><span class="pre">L</span></code> was sorted (ie, in ascending order). Next, I may well ask you if a given element <code class="docutils literal notranslate"><span class="pre">e</span></code> was in that list, and if so, where. One way is to interrogate the list item by item (ie, <code class="docutils literal notranslate"><span class="pre">for</span> <span class="pre">e</span> <span class="pre">in</span> <span class="pre">L</span></code>). While this sort of exhaustive enumeration might work well for small collections, if our list had several billion items we would wind up wasting a lot of time. In the worst case - and we are always interested in the worst case - the sought-after item would occupy the final index position, or be entirely absent from the list, forcing us to examine every item in the list.</p>
+<p>Let’s instead use the sorted nature of the list to our advantage. Assuming that <code class="docutils literal notranslate"><span class="pre">e</span></code> is in our sorted list <code class="docutils literal notranslate"><span class="pre">L</span></code>, we know it must be in one of three places:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>In the first half of <code class="docutils literal notranslate"><span class="pre">L</span></code></li>
+<li>At the midpoint of <code class="docutils literal notranslate"><span class="pre">L</span></code>, which we’ll call <code class="docutils literal notranslate"><span class="pre">mid</span></code></li>
+<li>In the second half of <code class="docutils literal notranslate"><span class="pre">L</span></code></li>
+</ol>
+</div></blockquote>
+<p>If we get lucky and find that in fact <code class="docutils literal notranslate"><span class="pre">L[mid]</span> <span class="pre">==</span> <span class="pre">e</span></code>, then all we have to do is return <code class="docutils literal notranslate"><span class="pre">True</span></code>, or the index position of <code class="docutils literal notranslate"><span class="pre">e</span></code> (that is, <code class="docutils literal notranslate"><span class="pre">L[mid]</span></code>), depending on what’s asked of us. If <code class="docutils literal notranslate"><span class="pre">L[mid]</span> <span class="pre">!=</span> <span class="pre">e</span></code>, however, the sorted nature of the list will tell us if our guess <code class="docutils literal notranslate"><span class="pre">e</span></code> was too low (<code class="docutils literal notranslate"><span class="pre">L[mid]</span> <span class="pre">&gt;</span> <span class="pre">e</span></code>) or too high (<code class="docutils literal notranslate"><span class="pre">L[mid]</span> <span class="pre">&lt;</span> <span class="pre">e</span></code>). We can then use this information to narrow our search by half again. Repeating this strategy allows us to quickly zero in on where <code class="docutils literal notranslate"><span class="pre">e</span></code> might be hiding (or if it’s not present at all). This powerful technique is known as bisection or binary search, and belongs to the class of ‘divide-and-conquer’ algorithms. Since recursion is itself a form of divid-and-conquer, you can see where this is going.</p>
+<p>To get us started, here is an iterative function, <code class="docutils literal notranslate"><span class="pre">binSearch()</span></code>, that does the job:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">binSearch</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">e</span><span class="p">):</span>
+    <span class="n">high</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">L</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">low</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">high</span> <span class="o">&gt;=</span> <span class="n">low</span><span class="p">:</span>
+        <span class="n">mid</span> <span class="o">=</span> <span class="p">(</span><span class="n">high</span> <span class="o">+</span> <span class="n">low</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+        <span class="k">if</span> <span class="n">L</span><span class="p">[</span><span class="n">mid</span><span class="p">]</span> <span class="o">==</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="n">L</span><span class="p">[</span><span class="n">mid</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">high</span> <span class="o">=</span> <span class="n">mid</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">low</span> <span class="o">=</span> <span class="n">mid</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="kc">False</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">while</span></code> loop ensures that our comparison stops when <code class="docutils literal notranslate"><span class="pre">high</span></code> and <code class="docutils literal notranslate"><span class="pre">low</span></code> meet. Once there is no daylight between the two values, we know that <code class="docutils literal notranslate"><span class="pre">e</span></code> isn’t in the list, and we jump out to <code class="docutils literal notranslate"><span class="pre">return</span> <span class="pre">False</span></code>. Otherwise we continue to reduce the search space by half with every iteration.</p>
+<p><strong>Question:</strong> If our search space (ie, <code class="docutils literal notranslate"><span class="pre">len(L)</span></code>) were 100 items long, how many bisections are needed to conclude that <code class="docutils literal notranslate"><span class="pre">e</span></code> is not in <code class="docutils literal notranslate"><span class="pre">L</span></code>? What if <code class="docutils literal notranslate"><span class="pre">len(L)</span> <span class="pre">==</span> <span class="pre">1000</span></code>? Can you abstract this into a general measurement for the efficiency of binary search, versus exhaustive enumeration? This is a good insight into how computational complexity can be measured, independently of hardware or other variables.</p>
+<p>To think about binary search recursively, let’s begin with the base case: as successive halvings of the list cause <code class="docutils literal notranslate"><span class="pre">len(L)</span></code> to approach zero, we will either find or not find <code class="docutils literal notranslate"><span class="pre">e</span></code>. So we have two base cases:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">binSearchRecur1</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">e</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">L</span> <span class="o">==</span> <span class="p">[]:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">L</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">L</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">e</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># lots of code</span>
+</pre></div>
+</div>
+<p>This approach elegantly handles two edge cases: if we reach an empty list, we know we haven’t found <code class="docutils literal notranslate"><span class="pre">e</span></code>. On the other hand, if we are passed a list with only item in it, <code class="docutils literal notranslate"><span class="pre">return</span> <span class="pre">L[0]</span> <span class="pre">==</span> <span class="pre">e</span></code> returns a boolean that tells us whether <code class="docutils literal notranslate"><span class="pre">L[0]</span></code> is the <code class="docutils literal notranslate"><span class="pre">e</span></code> we’re looking for.</p>
+<p>Let’s now consider how to handle all other situations, that is, where <code class="docutils literal notranslate"><span class="pre">len(L)</span> <span class="pre">&gt;</span> <span class="pre">1</span></code>. As with the iterative version, we want to capture the bisection and test it against <code class="docutils literal notranslate"><span class="pre">e</span></code>. We base our recursive call on this evaluation, sending the halved list back to the function until we have reached one of the base cases:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span> <span class="k">def</span> <span class="nf">binSearchRecur1</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">e</span><span class="p">):</span>
+     <span class="k">if</span> <span class="n">L</span> <span class="o">==</span> <span class="p">[]:</span>
+         <span class="k">return</span> <span class="bp">False</span>
+     <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">L</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+         <span class="k">return</span> <span class="n">L</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">e</span>
+<span class="hll">     <span class="k">else</span><span class="p">:</span>
+</span><span class="hll">         <span class="n">half</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">L</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+</span><span class="hll">         <span class="k">if</span> <span class="n">L</span><span class="p">[</span><span class="n">half</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">e</span><span class="p">:</span>
+</span><span class="hll">             <span class="k">return</span> <span class="n">binSearchRecur1</span><span class="p">(</span><span class="n">L</span><span class="p">[:</span><span class="n">half</span><span class="p">],</span> <span class="n">e</span><span class="p">)</span>
+</span><span class="hll">         <span class="k">else</span><span class="p">:</span>
+</span><span class="hll">             <span class="k">return</span> <span class="n">binSearchRecur1</span><span class="p">(</span><span class="n">L</span><span class="p">[</span><span class="n">half</span><span class="p">:],</span> <span class="n">e</span><span class="p">)</span>
+</span></pre></div>
+</div>
+<p>This looks pretty good: we have successfully covered all of our cases and are guaranteed an answer. The important stuff happens pre-recursively, in the sense that we do all the hard work on the way to the base case. Whether the base case yields <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code>, that’s what we bring back through the recursive process, without any further alterations. Just like <code class="docutils literal notranslate"><span class="pre">pal()</span></code>, we only want to know if the hypothesis of our original proposition (in this case, ‘is <code class="docutils literal notranslate"><span class="pre">e</span></code> in <code class="docutils literal notranslate"><span class="pre">L</span></code>?’) holds up through the reductive process of recursion.</p>
+<p>However, our algorithm is not as efficient as it could be. Note that in the recursive call we are sending a <em>copy</em> of the list into the next frame (any time you see a <code class="docutils literal notranslate"><span class="pre">:</span></code> in a list method, it means a copy has been made). Even if it’s just half the size of the original list, it’s still an expense that we could do without. If our initial list has a billion elements, the recursive halving to half of a billion is still 500 million elements.</p>
+<p>Since <code class="docutils literal notranslate"><span class="pre">L</span></code> is not being altered in any way, we would prefer to operate only on the original list itself. To do this, we can use variables to specify the index positions that will form the boundaries of the search space. Every time we call the function, we’ll just change those index positions. In this way, we only need to keep one copy of the list in memory.</p>
+<p>Let’s add to our recursive call additional parameters for those index positions. To do this, we’ll rewrite our algorithm using a helper function. You’ll recall from our discussion in <a class="reference internal" href="02 Scope, Frame and Stack.html#scope-frame-and-stack"><span class="std std-ref">Scope, Frame and Stack</span></a> that functions can be nested inside of other functions. These are known as inner (or helper) functions, and, by the rules of scope, all values in the enclosing function are available to the inner function. This turns out to be very useful for our current situation. Here is the complete code:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">binSearchRecur2</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">e</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">binSearchHelp</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">high</span> <span class="o">==</span> <span class="n">low</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">L</span><span class="p">[</span><span class="n">low</span><span class="p">]</span> <span class="o">==</span> <span class="n">e</span>
+
+        <span class="n">mid</span> <span class="o">=</span> <span class="p">(</span><span class="n">low</span> <span class="o">+</span> <span class="n">high</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+
+        <span class="k">if</span> <span class="n">L</span><span class="p">[</span><span class="n">mid</span><span class="p">]</span> <span class="o">==</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="n">L</span><span class="p">[</span><span class="n">mid</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">low</span> <span class="o">==</span> <span class="n">mid</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">binSearchHelp</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">low</span><span class="p">,</span> <span class="n">mid</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">binSearchHelp</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">mid</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">high</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">L</span> <span class="o">==</span> <span class="p">[]:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">binSearchHelp</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">L</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Let’s look at the wrapper function first. We see the same base case for the empty list as above - it should return <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+<p><strong>Question:</strong> <code class="docutils literal notranslate"><span class="pre">elif</span> <span class="pre">len(L)</span> <span class="pre">==</span> <span class="pre">1:</span> <span class="pre">return</span> <span class="pre">L[0]</span> <span class="pre">==</span> <span class="pre">e</span></code> seems to have disappeared. Why? Can you find this functionality in the new code?</p>
+<p>If the list isn’t empty, we call the helper function <code class="docutils literal notranslate"><span class="pre">binSearchHelp()</span></code> and pass it <code class="docutils literal notranslate"><span class="pre">L</span></code> and <code class="docutils literal notranslate"><span class="pre">e</span></code>, as well as arguments representing the bottom and top bounds of the list’s range. This call only happens once, and is <em>not</em> a recursive call! As soon as we’re inside the inner function, recursion takes care of the rest.</p>
+<p>Within the helper function, the <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">high</span> <span class="pre">==</span> <span class="pre">low</span></code> block is equivalent to the second base case in <code class="docutils literal notranslate"><span class="pre">binSearchRecur1()</span></code>: if there is one item in the list, return a boolean evaluating <code class="docutils literal notranslate"><span class="pre">L[low]</span> <span class="pre">==</span> <span class="pre">e</span></code> as <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code>. Otherwise, we set up the midpoint <code class="docutils literal notranslate"><span class="pre">mid</span></code> and evaluate where <code class="docutils literal notranslate"><span class="pre">e</span></code> sits in relation to <code class="docutils literal notranslate"><span class="pre">mid</span></code>. And we keep bisecting recursively until <code class="docutils literal notranslate"><span class="pre">L[mid]</span> <span class="pre">==</span> <span class="pre">e</span></code>, or we run out of search space.</p>
+<p>You’ll notice that we’ve borrowed a few lines from the original iterative code. However, in the new version we don’t have a <code class="docutils literal notranslate"><span class="pre">while</span></code> loop - we keep the program spinning by recursively calling <code class="docutils literal notranslate"><span class="pre">binSearchHelp()</span></code> with new arguments for <code class="docutils literal notranslate"><span class="pre">low</span></code> and <code class="docutils literal notranslate"><span class="pre">high</span></code>. This is the code’s most important feature: we are <em>not</em> making copies of a list but just looking at a smaller subset of the original list (<code class="docutils literal notranslate"><span class="pre">low,</span> <span class="pre">mid</span> <span class="pre">-</span> <span class="pre">1</span></code> vs <code class="docutils literal notranslate"><span class="pre">[half:]</span></code> and <code class="docutils literal notranslate"><span class="pre">mid</span> <span class="pre">+</span> <span class="pre">1,</span> <span class="pre">high</span></code> vs <code class="docutils literal notranslate"><span class="pre">[:half]</span></code>).</p>
+<p>While the readability of <code class="docutils literal notranslate"><span class="pre">binSearchRecur2()</span></code> may be more challenging in comparison to <code class="docutils literal notranslate"><span class="pre">binSearchRecur1()</span></code>, running these two algorithms against a large, randomly generated list yields significant differences in execution.</p>
+<p>As with the previous section, let’s use <code class="docutils literal notranslate"><span class="pre">timeit()</span></code> to accurately measure code execution speed. Before we can run <code class="docutils literal notranslate"><span class="pre">timeit()</span></code>, we need to generate a big list and randomly choose an <code class="docutils literal notranslate"><span class="pre">e</span></code> for our algorithm to find.</p>
+<p>Our complete code for testing both algorithms looks like this:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">timeit</span>
+<span class="kn">import</span> <span class="nn">random</span>
+
+<span class="k">def</span> <span class="nf">binSearchRecur1</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">e</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">L</span> <span class="o">==</span> <span class="p">[]:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">L</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">L</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">e</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">half</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">L</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+        <span class="k">if</span> <span class="n">L</span><span class="p">[</span><span class="n">half</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">binSearchRecur1</span><span class="p">(</span><span class="n">L</span><span class="p">[:</span><span class="n">half</span><span class="p">],</span> <span class="n">e</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">binSearchRecur1</span><span class="p">(</span><span class="n">L</span><span class="p">[</span><span class="n">half</span><span class="p">:],</span> <span class="n">e</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">binSearchRecur2</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">e</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">binSearchHelp</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">high</span> <span class="o">==</span> <span class="n">low</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">L</span><span class="p">[</span><span class="n">low</span><span class="p">]</span> <span class="o">==</span> <span class="n">e</span>
+        <span class="n">mid</span> <span class="o">=</span> <span class="p">(</span><span class="n">low</span> <span class="o">+</span> <span class="n">high</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+        <span class="k">if</span> <span class="n">L</span><span class="p">[</span><span class="n">mid</span><span class="p">]</span> <span class="o">==</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="n">L</span><span class="p">[</span><span class="n">mid</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">low</span> <span class="o">==</span> <span class="n">mid</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">binSearchHelp</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">low</span><span class="p">,</span> <span class="n">mid</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">binSearchHelp</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">mid</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">high</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">L</span> <span class="o">==</span> <span class="p">[]:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">binSearchHelp</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">L</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="n">L</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1000000000</span><span class="p">)]</span>   <span class="c1"># creates list of random items</span>
+<span class="n">e</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">L</span><span class="p">)</span>                 <span class="c1"># selects one element from L</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">timeit</span><span class="o">.</span><span class="n">timeit</span><span class="p">(</span><span class="s1">&#39;binSearchRecur1(L, e)&#39;</span><span class="p">,</span> <span class="nb">globals</span><span class="o">=</span><span class="nb">globals</span><span class="p">(),</span> <span class="n">number</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="s1">&#39;seconds&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">timeit</span><span class="o">.</span><span class="n">timeit</span><span class="p">(</span><span class="s1">&#39;binSearchRecur2(L, e)&#39;</span><span class="p">,</span> <span class="nb">globals</span><span class="o">=</span><span class="nb">globals</span><span class="p">(),</span> <span class="n">number</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="s1">&#39;seconds&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; 36.74825… seconds
+&gt;&gt;&gt; 00.00047… seconds
+</pre></div>
+</div>
+<p>While this disparity may not be as disastrous as what we saw with the Fibonacci sequence, it certainly highlights the importance of optimizing code wherever possible.</p>
+</div>
+<div class="section" id="sorting-things-out-mergesort">
+<h2>Sorting things out: <code class="docutils literal notranslate"><span class="pre">mergeSort()</span></code><a class="headerlink" href="#sorting-things-out-mergesort" title="Permalink to this headline">¶</a></h2>
+<p>Sorting has always been a programming challenge. It seems to have fewer options than searching, and the computational costs tend to be higher and less negotiable, partly due to the fact that sorting requires you to examine every item in a list at least once. If you haven’t looked at sorting algorithms yet, take some time to familiarize yourself with <a class="reference external" href="https://runestone.academy/runestone/books/published/pythonds/SortSearch/TheBubbleSort.html">bubble sort</a> and <a class="reference external" href="https://runestone.academy/runestone/books/published/pythonds/SortSearch/TheSelectionSort.html">select sort</a>. That will give you a better context for the following discussion.</p>
+<p>I’m only going to discuss merge sort, which is the algorithm that lends itself most naturally to recursion. As with the binary search approach taken above, merge sort falls into the category of divide-and-conquer algorithms.</p>
+<p>Once again, let’s start with the simplest statement of the problem: When can we be sure that, without even inspecting it, a list is sorted? Similar to binary search’s base cases, if the list is empty or has only one element, it must, by definition, already be in a sorted state.</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">mergeSort</span><span class="p">(</span><span class="n">L</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">L</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">L</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># a whole bunch of code</span>
+</pre></div>
+</div>
+<p>For all other lists where <code class="docutils literal notranslate"><span class="pre">len(L)</span> <span class="pre">&gt;</span> <span class="pre">1</span></code>, we’ll employ the following strategy:</p>
+<ol class="arabic simple">
+<li>Keep splitting the list in half (recursively) until all our sublists contain one element.</li>
+<li>Merge pairs of sublists by comparing the first element of each pair, first appending the smaller element to a new, sorted list, followed by the larger one. We’ll do this in a separate function.</li>
+<li>If during merging one sublist of a pair runs out of elements, add all the remaining elements in the other sublist to the sorted list.</li>
+</ol>
+<p>The first step shows us how to recursively arrive at our base cases. The merging will happen after the recursive call, and will do the work of actually sorting the list. The third step takes care of the edge case where a pair of (now-sorted) lists are of unequal length. What would this look like in terms of actual code?</p>
+<p>Let’s begin at the beginning: breaking down the target list into single-item sublists. As with our searching algorithms, we want the base case to trigger when <code class="docutils literal notranslate"><span class="pre">len(L)</span> <span class="pre">&lt;</span> <span class="pre">2</span></code>, at which point we return that reduced list. Here is the code so far, where we recursively split our target list into <code class="docutils literal notranslate"><span class="pre">left</span></code> and <code class="docutils literal notranslate"><span class="pre">right</span></code> halves.</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">mergeSort</span><span class="p">(</span><span class="n">L</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">L</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">L</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">mid</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">L</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+        <span class="n">left</span> <span class="o">=</span> <span class="n">mergeSort</span><span class="p">(</span><span class="n">L</span><span class="p">[:</span><span class="n">mid</span><span class="p">])</span>
+        <span class="n">right</span> <span class="o">=</span> <span class="n">mergeSort</span><span class="p">(</span><span class="n">L</span><span class="p">[</span><span class="n">mid</span><span class="p">:])</span>
+        <span class="k">return</span> <span class="n">merge</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The return statement implies that some function <code class="docutils literal notranslate"><span class="pre">merge()</span></code> will do the actual merging and sorting, so let’s put that aside for the moment, and better understand the recursive mechanism, and at what point sublists get sent from <code class="docutils literal notranslate"><span class="pre">mergeSort()</span></code> to <code class="docutils literal notranslate"><span class="pre">merge()</span></code>.</p>
+<p>The first thing that stands out with <code class="docutils literal notranslate"><span class="pre">mergeSort()</span></code> is its multiple recursive calls. As with Fibonacci, this means we have a branching call structure. Using <code class="docutils literal notranslate"><span class="pre">L</span> <span class="pre">=</span> <span class="pre">[8,</span> <span class="pre">4,</span> <span class="pre">1,</span> <span class="pre">6,</span> <span class="pre">5,</span> <span class="pre">9,</span> <span class="pre">2,</span> <span class="pre">0,</span> <span class="pre">3]</span></code> as our target list, here’s a diagram that shows what happens on the trips towards, and back from, the base case. Note that Fibonacci was a bit lopsided, since <code class="docutils literal notranslate"><span class="pre">fib(n</span> <span class="pre">-</span> <span class="pre">1)</span> <span class="pre">+</span> <span class="pre">fib(n</span> <span class="pre">-</span> <span class="pre">2)</span></code> always meant that the left side of the tree (<code class="docutils literal notranslate"><span class="pre">fib(n</span> <span class="pre">-</span> <span class="pre">1)</span></code>) would have more nodes and leaves than the right side (<code class="docutils literal notranslate"><span class="pre">fib(n</span> <span class="pre">-</span> <span class="pre">2)</span></code>). <code class="docutils literal notranslate"><span class="pre">mergeSort()</span></code> is our first example of a symmetrical binary tree.</p>
+<div class="figure align-center" id="id1">
+<a class="reference internal image-reference" href="_images/mergesort.jpg"><img alt="alternate text" src="_images/mergesort.jpg" style="width: 778.0px; height: 538.0px;" /></a>
+<p class="caption"><span class="caption-text">Figure 1. <code class="docutils literal notranslate"><span class="pre">mergeSort()</span></code> call tree for L = [8, 4, 1, 6, 5, 9, 2, 0, 3]</span></p>
+</div>
+<p>In keeping with the depth-first nature of recursion, the subdivision of the list happens until we hit the leftmost leaf in the tree. In this case:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>frame 1 [8, 4, 1, 6, 5, 9, 2, 0, 3]
+frame 2 [8, 4, 1, 6]
+frame 3 [8, 4]
+</pre></div>
+</div>
+<p>Note that this is all driven by the <em>first</em> recursive call, <code class="docutils literal notranslate"><span class="pre">left</span> <span class="pre">=</span> <span class="pre">mergeSort(L[:mid])</span></code>. We get to the base case for the first time in frame 4, where <code class="docutils literal notranslate"><span class="pre">len(L)</span> <span class="pre">&lt;</span> <span class="pre">2</span></code> and the return assigns <code class="docutils literal notranslate"><span class="pre">left</span> <span class="pre">=</span> <span class="pre">8</span></code> in frame 3. Since the namespace for <code class="docutils literal notranslate"><span class="pre">L</span></code> in frame 3 is <code class="docutils literal notranslate"><span class="pre">[8,</span> <span class="pre">4]</span></code>, our second recursive call, <code class="docutils literal notranslate"><span class="pre">right</span> <span class="pre">=</span> <span class="pre">mergeSort(L[mid:])</span></code>, creates frame 5, which immediately goes to the base case, returning <code class="docutils literal notranslate"><span class="pre">4</span></code>. Now back in frame 3, we have completed the function and are ready to send <code class="docutils literal notranslate"><span class="pre">8</span></code> and <code class="docutils literal notranslate"><span class="pre">4</span></code> as arguments to <code class="docutils literal notranslate"><span class="pre">merge()</span></code>.</p>
+<p>Before we do so, keep in mind that we are still deep in <code class="docutils literal notranslate"><span class="pre">mergeSort()</span></code>’s recursive structure. Unlike the programs we have seen so far, we aren’t returning values generated within <code class="docutils literal notranslate"><span class="pre">mergeSort()</span></code> back to <code class="docutils literal notranslate"><span class="pre">mergeSort()</span></code>, but rather calling another function. This doesn’t mean that we are done with <code class="docutils literal notranslate"><span class="pre">mergeSort()</span></code> - a quick glance at the tree shows that we have a long way to go yet.</p>
+<p>For its part, <code class="docutils literal notranslate"><span class="pre">merge()</span></code> handles the work of putting elements of two lists - of any length - into a third list, all in the right order:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">merge</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">left</span><span class="p">)</span> <span class="ow">and</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">right</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">left</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">right</span><span class="p">[</span><span class="n">j</span><span class="p">]:</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">left</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">right</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+            <span class="n">j</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">left</span><span class="p">):</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">left</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">while</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">right</span><span class="p">):</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">right</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+        <span class="n">j</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">result</span>
+</pre></div>
+</div>
+<p>In our current case, <code class="docutils literal notranslate"><span class="pre">[8]</span></code> and <code class="docutils literal notranslate"><span class="pre">[4]</span></code> have been passed as arguments to the <code class="docutils literal notranslate"><span class="pre">left</span></code> and <code class="docutils literal notranslate"><span class="pre">right</span></code> parameters. What gets passed back to frame 3 of <code class="docutils literal notranslate"><span class="pre">mergeSort()</span></code> is <code class="docutils literal notranslate"><span class="pre">result</span> <span class="pre">==</span> <span class="pre">[4,</span> <span class="pre">8]</span></code>. Now that frame 3 has everything it needs, it returns this result to frame 2, which originally called it. Where does this returned list wind up? Here:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">left</span> <span class="o">=</span> <span class="n">mergeSort</span><span class="p">(</span><span class="n">L</span><span class="p">[:</span><span class="n">mid</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Recall that in frame 2, the namespace for <code class="docutils literal notranslate"><span class="pre">L</span></code> is <code class="docutils literal notranslate"><span class="pre">[8,</span> <span class="pre">4,</span> <span class="pre">1,</span> <span class="pre">6]</span></code>. Now we have <code class="docutils literal notranslate"><span class="pre">left</span> <span class="pre">=</span> <span class="pre">[4,</span> <span class="pre">8]</span></code> so we move on to the next line, which is <code class="docutils literal notranslate"><span class="pre">right</span> <span class="pre">=</span> <span class="pre">mergeSort(L[mid:])</span></code>. This call creates frame 6 to handle the second half of <code class="docutils literal notranslate"><span class="pre">L</span></code>, which is <code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">6]</span></code>. Frames 7 and 8 provide us with base case singleton lists, and from frame 6 we send <code class="docutils literal notranslate"><span class="pre">[1]</span></code> and <code class="docutils literal notranslate"><span class="pre">[6]</span></code> to <code class="docutils literal notranslate"><span class="pre">merge()</span></code> as arguments for <code class="docutils literal notranslate"><span class="pre">left</span></code> and <code class="docutils literal notranslate"><span class="pre">right</span></code>. The combined and sorted list is returned to frame 6 and immediately passed up to frame 2, where it is bound to <code class="docutils literal notranslate"><span class="pre">right</span></code> in the statement</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">right</span> <span class="o">=</span> <span class="n">mergeSort</span><span class="p">(</span><span class="n">L</span><span class="p">[</span><span class="n">mid</span><span class="p">:])</span>
+</pre></div>
+</div>
+<p>Now we have two sorted lists for frame 2:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">left</span> <span class="o">=</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">]</span>
+<span class="n">right</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Having reached the bottom of <code class="docutils literal notranslate"><span class="pre">mergeSort()</span></code> in frame 2, we repeat the same return, calling <code class="docutils literal notranslate"><span class="pre">merge()</span></code> with the above values for <code class="docutils literal notranslate"><span class="pre">left</span></code> and <code class="docutils literal notranslate"><span class="pre">right</span></code>.</p>
+<p>Finally, the sorted list <code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">4,</span> <span class="pre">6,</span> <span class="pre">8]</span></code> is passed up to frame 1, where it is assigned to that frame’s namespace for <code class="docutils literal notranslate"><span class="pre">left</span></code>. We’ve now completed the left side of the recursive call structure!</p>
+<p>Of course, the right side is executed in exactly the same way. We continue to drill down to the leftmost leaf of that side, which is <code class="docutils literal notranslate"><span class="pre">5</span></code>, sorting it against <code class="docutils literal notranslate"><span class="pre">9</span></code>. The only additional wrinkle is when we get to frame 13 and its odd number of list items. Since <code class="docutils literal notranslate"><span class="pre">[2,</span> <span class="pre">0,</span> <span class="pre">3]</span></code> splits into <code class="docutils literal notranslate"><span class="pre">[2]</span></code> and <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">3]</span></code>, the latter has to undergo recursion one more time. It’s ok, frame 13 will wait while this gets resolved.</p>
+<p>Similar to our example of summing a list of lists, recursion is good at handling these sorts of situations - it will drive on until the base case is triggered. This is another reason why <code class="docutils literal notranslate"><span class="pre">merge()</span></code> was designed to handle lists with different lengths - if we were only expecting to receive arguments where <code class="docutils literal notranslate"><span class="pre">len(left)</span> <span class="pre">==</span> <span class="pre">len(right)</span></code> we could easily get either an <code class="docutils literal notranslate"><span class="pre">Index</span> <span class="pre">Error</span></code> or, worse, a digit that is omitted or returned in the wrong order.</p>
+<p>Finally, the right side of the tree has returned its portion of the list. So now we are back at frame 1, where</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">left</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">8</span><span class="p">]</span>
+<span class="n">right</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">9</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>We do the final call to <code class="docutils literal notranslate"><span class="pre">merge()</span></code> and, since there are no more frames, return the final sorted list to the global frame.</p>
+<p>Here is the entire code, along with a random list generator and the <code class="docutils literal notranslate"><span class="pre">timeit</span></code> module:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">timeit</span>
+<span class="kn">import</span> <span class="nn">random</span>
+
+<span class="k">def</span> <span class="nf">merge</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">left</span><span class="p">)</span> <span class="ow">and</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">right</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">left</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">right</span><span class="p">[</span><span class="n">j</span><span class="p">]:</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">left</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">right</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+            <span class="n">j</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">left</span><span class="p">):</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">left</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">while</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">right</span><span class="p">):</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">right</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+        <span class="n">j</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">result</span>
+
+<span class="k">def</span> <span class="nf">mergeSort</span><span class="p">(</span><span class="n">L</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">L</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">L</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">mid</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">L</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+        <span class="n">left</span> <span class="o">=</span> <span class="n">mergeSort</span><span class="p">(</span><span class="n">L</span><span class="p">[:</span><span class="n">mid</span><span class="p">])</span>
+        <span class="n">right</span> <span class="o">=</span> <span class="n">mergeSort</span><span class="p">(</span><span class="n">L</span><span class="p">[</span><span class="n">mid</span><span class="p">:])</span>
+        <span class="k">return</span> <span class="n">merge</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">)</span>
+
+<span class="n">L</span> <span class="o">=</span> <span class="p">[</span><span class="n">random</span><span class="o">.</span><span class="n">randrange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1000</span><span class="p">)]</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">timeit</span><span class="o">.</span><span class="n">timeit</span><span class="p">(</span><span class="s1">&#39;mergeSort(L)&#39;</span><span class="p">,</span> <span class="nb">globals</span><span class="o">=</span><span class="nb">globals</span><span class="p">(),</span> <span class="n">number</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>This seems like an awful lot of work for sorting a list, but it’s actually more efficient than most other sorting algorithms. More importantly, sorting a collection makes searching it much more efficient. Returning to my initial remarks at the top of this guide, it’s especially true if you have a large collection that you know will be searched many times but only needs to be sorted once. In that sense, the cost of sorting can be ‘amortized’ over the number of searches performed on the sorted set. Given a large enough number of searches, the investment in sorting becomes trivial. So, taking the time to sort may well be wortwhile.</p>
+</div>
+<div class="section" id="heuristics-and-exercises">
+<h2>Heuristics and Exercises<a class="headerlink" href="#heuristics-and-exercises" title="Permalink to this headline">¶</a></h2>
+<p>♦ Using slices to drive recursion may be clearer to visualize but it creates copies of lists (or strings, tuples, ranges or bytes) for each frame, which can become computationally burdensome. It’s preferable to allow a recursive process to repeatedly access the same, single data structure, than replicate a piece of that data structure for every recursive call. If you write a recursive solution that is executing slowly over a large collection, see if there is a way to restate the boundaries of the search space without creating unnecessary copies.</p>
+<p>♦ A recursive function doesn’t have to be completely self-contained. We can place recursion within more complex program structures. For example, we can separate the recursive function from functions that do other, significant computational work. In the case of <code class="docutils literal notranslate"><span class="pre">mergeSort()</span></code>, we offloaded a fairly complex merge/sort process into a separate function that we called from the return statement of the recursive function. However, keep in mind that calls to and returns from other functions are still embedded in the recursive process, which must entirely run its course.</p>
+<p><strong>Exercise:</strong> Rewrite <code class="docutils literal notranslate"><span class="pre">binSearchRecur2</span></code> as a single function. What are the advantages, if any, of using a helper function in this case?</p>
+<p><strong>Exercise:</strong> Here is a bubble sort algorithm, <code class="docutils literal notranslate"><span class="pre">bubble()</span></code>. Convert it into a recursive form, <code class="docutils literal notranslate"><span class="pre">bubbleRecur()</span></code>.</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">bubble</span><span class="p">(</span><span class="n">L</span><span class="p">):</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">L</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+
+            <span class="k">if</span> <span class="n">L</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">L</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]:</span>
+                <span class="n">temp</span> <span class="o">=</span> <span class="n">L</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+                <span class="n">L</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">L</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+                <span class="n">L</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp</span>
+
+    <span class="k">return</span> <span class="n">L</span>
+</pre></div>
+</div>
+<p><strong>Exercise:</strong> Here is a select sort algorithm, <code class="docutils literal notranslate"><span class="pre">select()</span></code>. Convert it into a recursive form, <code class="docutils literal notranslate"><span class="pre">selectRecur()</span></code>.</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">select</span><span class="p">(</span><span class="n">L</span><span class="p">):</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">L</span><span class="p">)):</span>
+       <span class="n">mini</span> <span class="o">=</span> <span class="n">i</span>
+
+       <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">L</span><span class="p">)):</span>
+           <span class="k">if</span> <span class="n">L</span><span class="p">[</span><span class="n">mini</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">L</span><span class="p">[</span><span class="n">j</span><span class="p">]:</span>
+               <span class="n">mini</span> <span class="o">=</span> <span class="n">j</span>
+
+       <span class="n">temp</span> <span class="o">=</span> <span class="n">L</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+       <span class="n">L</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">L</span><span class="p">[</span><span class="n">mini</span><span class="p">]</span>
+       <span class="n">L</span><span class="p">[</span><span class="n">mini</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp</span>
+
+    <span class="k">return</span> <span class="n">L</span>
+</pre></div>
+</div>
+<p><strong>Exercise:</strong> We implemented binary search using slices, and then made it more efficient by using index positions. Merge sort also uses slices, so apply this strategy to write a function <code class="docutils literal notranslate"><span class="pre">mergeSort2()</span></code> that will show dramatically improved performance.</p>
+<p><strong>Exercise:</strong> We now have six sorting algorithms:</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">bubble()</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">bubbleRecur()</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">select()</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">selectRecur()</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">mergeSort()</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">mergeSort2()</span></code></li>
+</ul>
+</div></blockquote>
+<p>In a single program, run these algorithms against the same randomly generated list of numbers (your list should be pretty big - say at least 1 million items). Use <code class="docutils literal notranslate"><span class="pre">timeit</span></code> to get a handle on the differences and improvements in the various algorithms’ execution times.</p>
+<p><strong>Credit:</strong> Much of this material adapted from pp152-164 of John Guttag’s <a class="reference external" href="https://mitpress.mit.edu/books/introduction-computation-and-programming-using-python-second-edition">Introduction to Computation and Programming Using Python, 2nd Ed.</a></p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Recursive Approaches To Searching And Sorting</a><ul>
+<li><a class="reference internal" href="#searching-by-bisecting-the-search-space">Searching by bisecting the search space</a></li>
+<li><a class="reference internal" href="#sorting-things-out-mergesort">Sorting things out: <code class="docutils literal notranslate"><span class="pre">mergeSort()</span></code></a></li>
+<li><a class="reference internal" href="#heuristics-and-exercises">Heuristics and Exercises</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="11 Fibonacci 2.html"
+                        title="previous chapter">Memoization: Fibonacci Sequence, Part 2</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="13 Koch Curves.html"
+                        title="next chapter">Recursion and Self-Similarity: Koch Curves</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/12 Search and Sort.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="13 Koch Curves.html" title="Recursion and Self-Similarity: Koch Curves"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="11 Fibonacci 2.html" title="Memoization: Fibonacci Sequence, Part 2"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Understanding Recursion Using Python 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, panopticonopolis.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,438 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Boss Level: The Tower of Hanoi &#8212; Understanding Recursion Using Python 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Solving L-System Recursion" href="16 L-System Solution.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="16 L-System Solution.html" title="Solving L-System Recursion"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Understanding Recursion Using Python 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="boss-level-the-tower-of-hanoi">
+<span id="hanoi"></span><h1>Boss Level: The Tower of Hanoi<a class="headerlink" href="#boss-level-the-tower-of-hanoi" title="Permalink to this headline">¶</a></h1>
+<p>Finally, we lay siege to the Tower of Hanoi. While I’ve studied recursion for only a brief time, I’ve become more and more surprised that many tutorials on the subject include this as only the third or fourth example (the other two are usually factorials and Fibonacci sequence). In this guide I’ve gone through dozens of algorithms, and I think the Tower problem is still very difficult to understand, partly because the problem and the solution are both easily stated. “The code is so short - how hard could it be?” are common Famous Last Words people say when they start digging into the puzzle.</p>
+<p>The real learning, as I’ve tried to emphasize in every section of this guide to recursion, comes from an ability to work through the process by which we come to the solution. So for this puzzle we’ll be deriving the answer from first principles, which is more beneficial (and perhaps easier) than reverse-engineering the solution. Then we’ll spend some time understanding how that solution actually works - as we’ll see, getting the answer and knowing how it works can be two very different things.</p>
+<p>First, a little history. The problem was first posed by Édouard Lucas in 1883. Assume <em>n</em> number of disks are stacked by decreasing size on peg <em>A</em>. There are two other empty pegs, <em>B</em> and <em>C</em>. You have to move the disks from <em>A</em> to <em>C</em>, with the order of stacking preserved. There are two further restrictions:</p>
+<ol class="arabic simple">
+<li>You can only move one disk at a time</li>
+<li>A larger disk can never be placed on top of a smaller disk</li>
+</ol>
+<p>Lucas fancifully set the task to a group of monks in a temple, where they manually move a stack of 64 golden disks from <em>A</em> to <em>C</em>. Upon completing the task, their reward would be the end of the world. Now, executing the minimum number of moves for 64 disks, at one move per second, would take something like 585 billion years. Which means the world will be around for quite a while yet, at least if the disks have to be physically manipulated. It’s a good thing they didn’t use a computer to avoid any mistakes! (A good case for keeping monks away from computers is made in Arthur C. Clarke’s short story <a class="reference external" href="https://urbigenous.net/library/nine_billion_names_of_god.html">The Nine Billion Names of God</a>.)</p>
+<p>Before we get started, we need to be more explicit about the rules for moving disks. Our first variation - let’s call it <code class="docutils literal notranslate"><span class="pre">simpleHanoi()</span></code> - will allow us to jump from peg <em>A</em> to peg <em>C</em>, even if we couldn’t land on peg <em>B</em> due to there being a smaller disk on <em>B</em> than the one we are moving. The second, stricter variant allows us to move disks only to a neighboring peg. We’ll get to <code class="docutils literal notranslate"><span class="pre">strictHanoi()</span></code> after we’ve sorted out <code class="docutils literal notranslate"><span class="pre">simpleHanoi()</span></code>.</p>
+<div class="section" id="put-the-algorithm-in-your-hands">
+<h2>Put the algorithm in your hands<a class="headerlink" href="#put-the-algorithm-in-your-hands" title="Permalink to this headline">¶</a></h2>
+<p>While I’ll be discussing the problem in Lucas’s original terms of disks and pegs, you can physically model the Tower problem with any group of objects of increasing size - say, a stack of books. In fact, I strongly recommend that you do this right now. It’s not often that you can hold the steps of an algorithm in your hands.</p>
+<p>Let’s start with a stack of <em>n = 3</em> disks as our example, using the <code class="docutils literal notranslate"><span class="pre">simpleHanoi()</span></code> variant. How many steps does it take? 14? 11? You should be able to get it down to 7 fairly quickly. Programmers are interested in efficiency, so we’re really only concerned with the minimum number of moves.</p>
+<p>So we can better keep track, let’s also number the disks, starting with 1 for the smallest, top disk, and ending at <em>n</em> for the largest, bottom disk (the reason for doing it this way, as opposed to calling the smallest disk <em>n</em> and the largest disk 1, will become apparent when we get to the function itself).</p>
+<p>The first thing to notice about the 7-step solution is that, at step 4, we move disk 3 from peg <em>A</em> to peg <em>C</em>. This is the first disk that is permanently in the right spot. What’s more, we only have to move it once! Also, the remaining disks are all on peg <em>B</em>. The next three moves simply stack the remaining disks on peg <em>C</em>, using <em>A</em> as a temporary peg.</p>
+<p>Moving on to a stack of <em>n = 4</em>, some practice should get you to a minimum number of 15 steps. Note that the same pattern obtains: at move 8, the (largest, bottom) disk 4 can jump from peg <em>A</em> to peg <em>C</em> because disks 1-3 are all on peg <em>B</em>. This allows us to hypothesize that, regardless of the size of <em>n</em>, at the midpoint of the minimum number of steps, we should be able to move disk <em>n</em> from <em>A</em> to <em>C</em>. When you think about it, the corollary that “all remaining disks must be stacked on peg <em>B</em>” is simply the logical pre-requisite to this.</p>
+<p>So we could say that, in order for us to move disk 4 from <em>A</em> to <em>C</em>, what we really want to do is build the stack of all disks but 1 on peg <em>B</em>. To achieve this, we have to clear the way for disk 3 to move from <em>A</em> to <em>B</em>. You can see there is a strategy slowly emerging here, or at least a way for us to know we’re on the right track.</p>
+<p>But how do we know what the minimum number of steps is for any given <em>n</em>? Let’s look at <em>n = 5</em> next. Instead of solving the entire puzzle for 5 disks, just determine how many steps you need to get to the theoretical midpoint, where disk 5 makes its only move from <em>A</em> to <em>C</em>. A bit more practice will reveal that this occurs on move 16. So by move 15, we have our stack of all remaining disks on peg <em>B</em> and disk 5 is ready to make its big jump. From there it’s easy to conclude that the minimum number of moves for <em>n = 5</em> is 31.</p>
+<p>If we tabulate our observations for the non-strict variant of the Tower <code class="docutils literal notranslate"><span class="pre">simpleHanoi()</span></code>, we have the following number of moves for the first few values of <em>n</em>:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>        midpoint  total
+n == 1      0        1
+n == 2      2        3
+n == 3      4        7
+n == 4      8       15
+n == 5     16       31
+</pre></div>
+</div>
+<p>From this we can extrapolate that, for <em>n</em> disks, the minimum number of moves works out to <code class="docutils literal notranslate"><span class="pre">(2**n)</span> <span class="pre">-</span> <span class="pre">1</span></code>, and that we should hit our midpoint at <code class="docutils literal notranslate"><span class="pre">(2**n)</span> <span class="pre">//</span> <span class="pre">2</span></code>. It looks like we have a handle on the scope of the problem.</p>
+<p>It’s possible to extend our heuristical thinking a bit further:</p>
+<ul class="simple">
+<li>We can’t move the largest disk to peg <em>C</em> until it’s the only disk on peg <em>A</em>, and peg <em>C</em> is empty</li>
+<li>In order for that to be true, all remaining disks must be stacked, in the correct order, on peg <em>B</em></li>
+<li>In order to do that, the next-largest disk must be at the bottom of peg <em>B</em></li>
+<li>To do this, we can only move that disk when it is at the top of peg <em>A</em> and peg <em>B</em> is empty</li>
+<li>Therefore all disks smaller than that disk must be stacked on peg <em>A</em></li>
+</ul>
+<p>You have probably already recognized this “I can’t do ‘x’ until I do ‘y’, and I can’t do ‘y’ until I do ‘z’” sort of talk as a euphemism for recursion. But do we have any guidance for how the recursion might be structured? Well, we do have an important clue, which is that the minimum number of moves is <code class="docutils literal notranslate"><span class="pre">(2**n)</span> <span class="pre">-</span> <span class="pre">1</span></code>.</p>
+<p>If you worked through the <code class="docutils literal notranslate"><span class="pre">mergeSort()</span></code> example in <a class="reference internal" href="12 Search and Sort.html#search-and-sort"><span class="std std-ref">Recursive Approaches To Searching And Sorting</span></a>, you’ll know that <code class="docutils literal notranslate"><span class="pre">(2**n)</span> <span class="pre">-</span> <span class="pre">1</span></code> represents a binary tree structure. An initial root node generates two nodes of its own. In turn, each node creates two nodes of its own. This multiplication continues until something ends the tree, resulting in leaves (also known as terminal nodes).</p>
+<p>The tree we saw in <code class="docutils literal notranslate"><span class="pre">mergeSort()</span></code>  was created using the two recursive calls. Every time <code class="docutils literal notranslate"><span class="pre">mergeSort()</span></code> called itself, we would eventually open two frames, one for <code class="docutils literal notranslate"><span class="pre">mergeSort(L[:mid])</span></code> and another for <code class="docutils literal notranslate"><span class="pre">mergeSort(L[mid:])</span></code>. Here’s the tree and code for the example in the referenced section.</p>
+<div class="figure align-center" id="id1">
+<a class="reference internal image-reference" href="_images/mergesort.jpg"><img alt="alternate text" src="_images/mergesort.jpg" style="width: 778.0px; height: 538.0px;" /></a>
+<p class="caption"><span class="caption-text">Figure 1. <code class="docutils literal notranslate"><span class="pre">mergeSort()</span></code> call tree for L = [8, 4, 1, 6, 5, 9, 2, 0, 3]</span></p>
+</div>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">mergeSort</span><span class="p">(</span><span class="n">L</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">L</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">L</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">mid</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">L</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+        <span class="n">left</span> <span class="o">=</span> <span class="n">mergeSort</span><span class="p">(</span><span class="n">L</span><span class="p">[:</span><span class="n">mid</span><span class="p">])</span>
+        <span class="n">right</span> <span class="o">=</span> <span class="n">mergeSort</span><span class="p">(</span><span class="n">L</span><span class="p">[</span><span class="n">mid</span><span class="p">:])</span>
+        <span class="k">return</span> <span class="n">merge</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In the case of <code class="docutils literal notranslate"><span class="pre">mergeSort()</span></code> the tree was created by halving the list recursively into left and right sublists, until a sublist had <code class="docutils literal notranslate"><span class="pre">len(L)</span> <span class="pre">==</span> <span class="pre">1</span></code>, which was the condition for ‘leafiness’. With our solution to the Tower of Hanoi it will be a little more subtle. But this discussion shows that we have another piece of the puzzle: if <code class="docutils literal notranslate"><span class="pre">simpleHanoi()</span></code> can be modeled as a binary tree, then it will be represented in code as a function with two recursive cases.</p>
+<p>Let’s make a few more observations. The move of the next-largest (or <em>n - 1</em>) disk from peg <em>A</em> to peg <em>B</em> occurs at the midpoint between the start of the puzzle and the move where the largest disk jumps to <em>C</em> (‘1 to <em>C</em>’ is simply a restatement of the last move made overall).</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>        n-1 to B    n to C    1 to C
+n = 1        0         0         1
+n = 2        1         2         3
+n = 3        2         4         7
+n = 4        4         8        15
+n = 5        8        16        31
+</pre></div>
+</div>
+<p>And when it comes to taking disk 2 from peg <em>B</em> to its destination peg <em>C</em>, there is a similar symmetry at work:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>        n-1 to B    n to C    n-1 to C    1 to C
+n = 1        0         0           0         1
+n = 2        1         2           3         3
+n = 3        2         4           6         7
+n = 4        4         8          12        15
+n = 5        8        16          24        31
+</pre></div>
+</div>
+<p>So far, we’ve established the minimum number of steps for a given <em>n</em> and abstracted it into a formula. We’ve also intuited some basic structural characteristics for a number of instances of the puzzle, all of which seem consistent. The next logical step is to look at the sequence of specific moves. We know that <em>n = 1</em> is a trivial example that can be stated as ‘Move disk 1 from <em>A</em> to <em>C</em>’. Let’s look at <em>n = 2</em>:</p>
+<ol class="arabic simple">
+<li>Move disk 1 from <em>A</em> to <em>B</em>    (disk n - 1 to <em>B</em>)</li>
+<li>Move disk 2 from <em>A</em> to <em>C</em>    (disk n to <em>C</em>, midpoint)</li>
+<li>Move disk 1 from <em>B</em> to <em>C</em>    (disk n - 1 to <em>C</em>)</li>
+</ol>
+<p>The pattern becomes a bit clearer with <em>n = 3</em>:</p>
+<ol class="arabic simple">
+<li>Move disk 1 from <em>A</em> to <em>C</em></li>
+<li>Move disk 2 from <em>A</em> to <em>B</em>    (disk n - 1 to <em>B</em>)</li>
+<li>Move disk 1 from <em>C</em> to <em>B</em></li>
+<li>Move disk 3 from <em>A</em> to <em>C</em>    (disk n to <em>C</em>, midpoint)</li>
+<li>Move disk 1 from <em>B</em> to <em>A</em></li>
+<li>Move disk 2 from <em>B</em> to <em>C</em>    (disk n - 1 to <em>C</em>)</li>
+<li>Move disk 1 from <em>A</em> to <em>C</em></li>
+</ol>
+<p>If we have <em>n = 4</em> we can see some complexity beginning to arise but our basic structure of midpoints holds:</p>
+<ol class="arabic simple">
+<li>Move disk 1 from <em>A</em> to <em>B</em></li>
+<li>Move disk 2 from <em>A</em> to <em>C</em></li>
+<li>Move disk 1 from <em>B</em> to <em>C</em></li>
+<li>Move disk 3 from <em>A</em> to <em>B</em>    (disk n - 1 to <em>B</em>)</li>
+<li>Move disk 1 from <em>C</em> to <em>A</em></li>
+<li>Move disk 2 from <em>C</em> to <em>B</em></li>
+<li>Move disk 1 from <em>A</em> to <em>B</em></li>
+<li>Move disk 4 from <em>A</em> to <em>C</em>    (disk n to <em>C</em>, midpoint)</li>
+<li>Move disk 1 from <em>B</em> to <em>C</em></li>
+<li>Move disk 2 from <em>B</em> to <em>A</em></li>
+<li>Move disk 1 from <em>C</em> to <em>A</em></li>
+<li>Move disk 3 from <em>B</em> to <em>C</em>    (disk n - 1 to <em>B</em>)</li>
+<li>Move disk 1 from <em>A</em> to <em>B</em></li>
+<li>Move disk 2 from <em>A</em> to <em>C</em></li>
+<li>Move disk 1 from <em>B</em> to <em>C</em></li>
+</ol>
+<p>We can see that there are other patterns at work here and really begin to appreciate how a <code class="docutils literal notranslate"><span class="pre">(2**n)</span> <span class="pre">-</span> <span class="pre">1</span></code> tree expands. In this view, you can see that every successive value of <em>n</em> takes the previous sequence of <em>n - 1</em>, concatenates <em>n</em>, and then concatenates the <em>n - 1</em> sequence again:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>n = 1 1
+n = 2 121
+n = 3 1213121
+n = 4 121312141213121
+n = 5 1213121412131215121312141213121
+</pre></div>
+</div>
+<p>Another view shows how the series expands by always inserting a new element between every move of the preceding series. In turn, all existing values are incremented by 1:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>n = 1                               1
+n = 2               1               2               1
+n = 3       1       2       1       3       1       2       1
+n = 4   1   2   1   3   1   2   1   4   1   2   1   3   1   2   1
+n = 5 1 2 1 3 1 2 1 4 1 2 1 3 1 2 1 5 1 2 1 3 1 2 1 4 1 2 1 3 1 2 1
+</pre></div>
+</div>
+<p>Of course, these are just two different views of the same series expansion. But it helps to be able to think about things from several angles, and can also lead to insights about how to solve the problem differently.</p>
+</div>
+<div class="section" id="filling-in-the-binary-tree">
+<h2>Filling in the binary tree<a class="headerlink" href="#filling-in-the-binary-tree" title="Permalink to this headline">¶</a></h2>
+<p>Since our hunch about the binary tree structure is bearing out, let’s write out the steps in terms of that form. Also, by now you may have concluded that, if we stick to the minimum number of steps, there is only one possible sequence for any given <em>n</em>. This implies that there is only one correct way of populating the tree - another hint that our recursive approach will work out, since recursion is exhaustive by nature.</p>
+<p>As the comparison of steps shows, since ‘Move disk <em>n</em> from A to C’ will always occur at the midpoint, then that move occupies the ‘root node’ of the tree, with an equal number of moves to either side of it. Even though <em>n = 1</em> is our trivial example, it’s always a good place to start:</p>
+<div class="figure align-center" id="id2">
+<a class="reference internal image-reference" href="_images/hanoi01.jpg"><img alt="alternate text" src="_images/hanoi01.jpg" style="width: 500.0px; height: 125.0px;" /></a>
+<p class="caption"><span class="caption-text">Figure 2. Call tree for <em>n = 1</em></span></p>
+</div>
+<p>I’m using the circles to designate frames, and diamonds to show when the step actually gets executed. We know that a tree is populated from its initial, root node, and execution of a tree goes from left to right, so rendering <em>n = 2</em> isn’t too difficult:</p>
+<div class="figure align-center" id="id3">
+<a class="reference internal image-reference" href="_images/hanoi02.jpg"><img alt="alternate text" src="_images/hanoi02.jpg" style="width: 500.0px; height: 250.0px;" /></a>
+<p class="caption"><span class="caption-text">Figure 3. Call tree for <em>n = 2</em></span></p>
+</div>
+<p>For <em>n = 2</em>, both frame creation and step execution move in the same direction, so I guess you could draw this diagram as three boxes in a single line. However, things get complicated with <em>n = 3</em>, so it’s more appropriate to consider the two disk 1 nodes as ‘children’ of the disk 2 ‘parent’.</p>
+<p>For <em>n = 3</em>, keep in mind that multiple recursion behaves in a depth-first fashion. So we can expect the first move to be represented by the left-most bottom leaf, and the final move to occupy the right-most bottom leaf.</p>
+<div class="figure align-center" id="id4">
+<a class="reference internal image-reference" href="_images/hanoi03.jpg"><img alt="alternate text" src="_images/hanoi03.jpg" style="width: 700.0px; height: 334.5px;" /></a>
+<p class="caption"><span class="caption-text">Figure 4. Call tree for <em>n = 3</em></span></p>
+</div>
+<p>The <em>n = 3</em> tree clearly shows how the order of execution is developing. The further down the tree we go (ie, the smaller the disk, or the smaller the <em>n</em>), the more moves are required of it. The way each disk occupies its own ‘level’ of the tree is also consistent. This will become very handy when we finally look at designing our recursive calls.</p>
+<p>Finally, the tree for <em>n = 4</em> really illustrates the ‘rhythm’ of expansion. We dip down to the leftmost leaf, and execute the triangle of calls of frames 3-5, then back to frame 2, then the trio of frames 6-8. Having completed the left side of the tree, we execute the root node, and then move on to the right side.</p>
+<div class="figure align-center" id="id5">
+<a class="reference internal image-reference" href="_images/hanoi04.jpg"><img alt="alternate text" src="_images/hanoi04.jpg" style="width: 699.6px; height: 237.29999999999998px;" /></a>
+<p class="caption"><span class="caption-text">Figure 5. Call tree for <em>n = 4</em></span></p>
+</div>
+<p>We’re almost ready to design our recursive calls. But before we do that, I want to point out one difference that you may have noticed between <code class="docutils literal notranslate"><span class="pre">simpleHanoi()</span></code> and <code class="docutils literal notranslate"><span class="pre">mergeSort()</span></code>: the order of execution is altered. In <code class="docutils literal notranslate"><span class="pre">mergeSort()</span></code>, for example, frame 2 (where <code class="docutils literal notranslate"><span class="pre">L</span> <span class="pre">==</span> <span class="pre">[8,</span> <span class="pre">4,</span> <span class="pre">1,</span> <span class="pre">6]</span></code>) splits its list into <code class="docutils literal notranslate"><span class="pre">[8,</span> <span class="pre">4]</span></code> for frame 3, and <code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">6]</span></code> for frame 6. The two called frames are executed first, followed by the calling frame. In <code class="docutils literal notranslate"><span class="pre">simpleHanoi()</span></code>, we execute the first called frame, then the calling frame, and lastly the second called frame - another thing we’ll certainly have to take this into account.</p>
+<p>The other thing to consider is exactly what kind of data we are providing as our solution. I’ve been presenting the puzzle in a very text-heavy way (eg, ‘Move disk 3 from A to B’). This is because most implementations present the print statements <em>as the solution</em>. Once the program is finished, all that you have to show for it is what’s on the screen. Admittedly, this is a little bizarre. With the exception of our drawn fractals, we have so far worked with algorithms that provided us with results that we could then send to other functions. I’ll continue to develop the Tower of Hanoi example as it’s commonly done, but it’s certainly possible to repurpose the code so that it isn’t quite so self-contained.</p>
+</div>
+<div class="section" id="designing-the-recursive-calls">
+<h2>Designing the recursive calls<a class="headerlink" href="#designing-the-recursive-calls" title="Permalink to this headline">¶</a></h2>
+<p>Now that we’ve successfully built a model of how the puzzle works, we want to
+think about how a function could produce an output that matches the order of steps in our binary tree. How do we fit the recursive calls to the model?</p>
+<p>What do we have to cook with? Not much, it seems - <em>n</em>, <em>A</em>, <em>B</em> and <em>C</em>. But it’s enough. Also, thanks to our construction of both the binary tree and the sequence of moves, we know <code class="docutils literal notranslate"><span class="pre">simpleHanoi()</span></code> will have:</p>
+<ol class="arabic simple">
+<li>Two recursive calls</li>
+<li>A way to decrement <em>n</em> so that we can address all ‘levels’ of <em>n</em></li>
+<li>The order of execution must be ‘called frame/calling frame/called frame’, versus the ‘called frame/called frame/calling frame’ implementation we had in <code class="docutils literal notranslate"><span class="pre">mergeSort()</span></code></li>
+<li>‘Move disk <em>n</em> from <em>A</em> to <em>C</em>’ must occur at the midpoint of program execution</li>
+</ol>
+<p>At this point, let’s see if we can use these guidelines to simply just recreate the text output for <em>n = 2</em>:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Move disk 1 from A to B
+Move disk 2 from A to C
+Move disk 1 from B to C
+</pre></div>
+</div>
+<p>To get this result, we could draft a totally fake, non-recursive function:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">simpleHanoi</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Move disk&#39;</span><span class="p">,</span> <span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;from A to B&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Move disk&#39;</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="s1">&#39;from A to C&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Move disk&#39;</span><span class="p">,</span> <span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;from B to C&#39;</span><span class="p">)</span>
+
+<span class="n">n</span> <span class="o">=</span> <span class="mi">2</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">simpleHanoi</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; Move disk 1 from A to B
+&gt;&gt;&gt; Move disk 2 from A to C
+&gt;&gt;&gt; Move disk 1 from B to C
+</pre></div>
+</div>
+<p>This addresses most of the four points above:</p>
+<ol class="arabic simple">
+<li>We have two recursive calls.</li>
+<li><code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">-</span> <span class="pre">1</span></code> implies where our recursive calls should be placed.</li>
+<li>By sandwiching the <code class="docutils literal notranslate"><span class="pre">print</span></code> statement between the two calls, we guarantee that we will follow the ‘called frame/calling frame/called frame’ order of execution.</li>
+<li>This sandwiching also ensures that the move of disk <em>n</em> from <em>A</em> to <em>C</em> occurs at the midpoint. And by recursion, we can assume that, at greater values of <em>n</em>, this symmetry will hold, since the first recursive call represents the left side of the tree, and the second the right.</li>
+</ol>
+<p>Obviously this code, in addition to not being recursive, doesn’t really work for anything other than <em>n = 2</em>. In fact, if recursion is to do all the work, the <em>only</em> print statement we can have is the one in the middle. The recursive statements will have to arrange the function’s variables - <code class="docutils literal notranslate"><span class="pre">A</span></code>, <code class="docutils literal notranslate"><span class="pre">B</span></code>, <code class="docutils literal notranslate"><span class="pre">C</span></code> - so that the correct print statement is executed for <em>n</em>, <em>n - 1</em>, …, until <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">==</span> <span class="pre">0</span></code>. And all in the correct order! Obviously, this means we cannot hard-code the string <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">A</span> <span class="pre">to</span> <span class="pre">C</span></code>, because that will be correct for only a tiny number of moves. How can we create the flexibility we need?</p>
+<p>While we were deriving the steps needed to move the disks in the correct sequence, you may have noticed that any given step always only uses two pegs. This implies that each recursive call should specify both the peg that holds the disk, and the peg that is the disk’s destination. The third peg doesn’t need to be specified as it’s not at all part of the move. Staying with <em>n = 2</em>, it’s simple to restate our fake code to include our peg variable names:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">simpleHanoi</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">B</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">simpleHanoi</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Move disk&#39;</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="s1">&#39;from&#39;</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="s1">&#39;to&#39;</span><span class="p">,</span> <span class="n">C</span><span class="p">)</span>
+        <span class="n">simpleHanoi</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">A</span><span class="p">)</span>
+
+<span class="n">n</span> <span class="o">=</span> <span class="mi">2</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">simpleHanoi</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; Move disk 1 from A to B
+&gt;&gt;&gt; Move disk 2 from A to C
+&gt;&gt;&gt; Move disk 1 from B to C
+</pre></div>
+</div>
+<p>I’ve made only four modifications to the code:</p>
+<ol class="arabic simple">
+<li>I’ve <em>literally translated</em> the first and third print statements into recursive calls (keep in mind that we still need to pass the correct number arguments originally defined in the function, so even though they’re not mentioned in the print statements, we still have to include <code class="docutils literal notranslate"><span class="pre">C</span></code> and <code class="docutils literal notranslate"><span class="pre">A</span></code> as arguments in their respective calls).</li>
+<li>In order to make this literal translation possible, the initial parameters in the function definition (and the arguments passed when <code class="docutils literal notranslate"><span class="pre">simpleHanoi()</span></code> is first invoked) are <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">A,</span> <span class="pre">C,</span> <span class="pre">B)</span></code></li>
+<li>Instead of hard-coded text, the middle print statement now calls parameters <code class="docutils literal notranslate"><span class="pre">A</span></code> and <code class="docutils literal notranslate"><span class="pre">C</span></code>, whose values are, unsurprisingly, <em>A</em> and <em>C</em>.</li>
+<li>The function’s contents is now inside an <code class="docutils literal notranslate"><span class="pre">if</span></code> block. Otherwise the first recursive call will keep decrementing <code class="docutils literal notranslate"><span class="pre">n</span></code> into negative numbers until the maximum recursion depth is exceeded, and we won’t ever see a single print statement.</li>
+</ol>
+<p>Ok, so we’ve translated a fake function into something that provides the same output for the simplest possible case that can use recursion. However, here is the remarkable thing: run this version of <code class="docutils literal notranslate"><span class="pre">simpleHanoi()</span></code> for any value of <em>n</em> and you’ll see that it yields the correct sequence. Somehow, we’ve solved the problem. How the hell did this happen?</p>
+</div>
+<div class="section" id="why-does-it-work">
+<h2>Why does it work?<a class="headerlink" href="#why-does-it-work" title="Permalink to this headline">¶</a></h2>
+<p>The short answer is thanks to recursion. That is, if it works for the simplest possible binary tree, it should work for a binary tree of <em>any</em> size. This isn’t an exclusive property of binary trees, though. Recall with <code class="docutils literal notranslate"><span class="pre">sierpinski()</span></code>, once we’d solved the base case and the minimally recursive case, we’d also solved the problem for any order fractal we wanted.</p>
+<p>You may find this explanation unsatisfying, so let’s look more closely at how <code class="docutils literal notranslate"><span class="pre">simpleHanoi()</span></code> generates all the right calls, in the right order.</p>
+<p>Another perspective might be helpful. Up until this point, I haven’t at all mentioned the base case. Is there one? Of course, but not where you might think it to be. Go back to the section on the Sierpinski triangle, and you’ll see a similar construction:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">sierpinski</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+    <span class="n">draw</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">order</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># insert recursive magic here</span>
+</pre></div>
+</div>
+<p>With <code class="docutils literal notranslate"><span class="pre">sierpinski()</span></code> we wanted to be sure that we drew the triangle at the given coordinates <code class="docutils literal notranslate"><span class="pre">p</span></code> even if the <code class="docutils literal notranslate"><span class="pre">if</span></code> block never triggered. This always gave us a result, even if <code class="docutils literal notranslate"><span class="pre">order</span> <span class="pre">==</span> <span class="pre">0</span></code>. In this sense, the base case for <code class="docutils literal notranslate"><span class="pre">sierpinski()</span></code> is the triangle described by <code class="docutils literal notranslate"><span class="pre">p</span></code>. It’s the simplest statement of the problem.</p>
+<p>Similarly, the simplest statement of the problem for <code class="docutils literal notranslate"><span class="pre">simpleHanoi()</span></code> is ‘Move disk 1 from <em>A</em> to <em>C</em>’, where <em>n = 1</em>. We enforce this by making the execution of the entire function subject to the condition <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">&gt;</span> <span class="pre">0</span></code>. In the case of <em>n = 1</em>, both recursive calls send <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">==</span> <span class="pre">0</span></code> to new frames. Since neither new frame triggers the <code class="docutils literal notranslate"><span class="pre">if</span></code> block, the program exits these frames without any further action. All we’re left with is <code class="docutils literal notranslate"><span class="pre">print('Move</span> <span class="pre">disk',</span> <span class="pre">n,</span> <span class="pre">'from',</span> <span class="pre">A,</span> <span class="pre">'to',</span> <span class="pre">C)</span></code>. From this, we can generalize that the base case of any recursive treatment of a binary tree is that tree’s root node.</p>
+<p>For all other cases where <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">&gt;</span> <span class="pre">1</span></code>, we trigger recursive calls that have to do actual work. If <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">&gt;</span> <span class="pre">1</span></code> and <code class="docutils literal notranslate"><span class="pre">Move</span> <span class="pre">n</span> <span class="pre">from</span> <span class="pre">A</span> <span class="pre">to</span> <span class="pre">C</span></code> is always the midpoint, then the left side of the tree finishes when all disks are stacked on peg <em>B</em>, and all calls on the right side of the tree are dedicated to getting the rest of the disks from <em>B</em> to the destination peg, <em>C</em>.</p>
+<p>The technique behind these calls should look familiar to you. If it doesn’t, go back to the example of the greatest common divisor in the section <a class="reference internal" href="05 Swapped.html#swapped"><span class="std std-ref">Recursion and Swapped Arguments</span></a>. But while <code class="docutils literal notranslate"><span class="pre">gcdRecur()</span></code> swapped two parameters in a recursively linear context, <code class="docutils literal notranslate"><span class="pre">simpleHanoi()</span></code> is more complex, swapping three parameters over two recursive calls.</p>
+<p>This swapping is <em>by far</em> the most difficult thing to understand about <code class="docutils literal notranslate"><span class="pre">simpleHanoi()</span></code>, so let’s take a closer look at how it works. Let’s begin with frame 1 for <em>n = 2</em>. There’s a lot to keep track of, but keep in mind one of our heuristics: a frame holds the values of all the parameters and variables <em>for that frame</em>. Those values don’t change, either, unless we explicitly bind another value to one of those variables. What <em>does</em> get changed is the content/arrangement of the arguments for each recursive call.</p>
+<p>So far we have mostly been breaking down (or augmenting) lists, passing on boolean values, etc. Here all we’re doing is taking the parameters of the calling function and swapping them to form the arguments for the called function.</p>
+<p>That’s the trick: once the recursive call is made from a given frame, the swapped values then become the order for the newly called frame. When we return to the calling frame, we <em>re-use</em> the values as they exist <em>in the calling frame</em> to populate the swapped arguments for the second call. In the abstract this makes sense, but in practice it gets tricky rather quickly, so I’ll modify the code to label pegs <em>A</em>, <em>B</em> and <em>C</em> with source (<code class="docutils literal notranslate"><span class="pre">src</span></code>), temp (<code class="docutils literal notranslate"><span class="pre">tmp</span></code>) and destination (<code class="docutils literal notranslate"><span class="pre">dst</span></code>):</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">simpleHanoi</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="n">tmp</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">simpleHanoi</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">src</span><span class="p">,</span> <span class="n">tmp</span><span class="p">,</span> <span class="n">dst</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Move disk&#39;</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="s1">&#39;from&#39;</span><span class="p">,</span> <span class="n">src</span><span class="p">,</span> <span class="s1">&#39;to&#39;</span><span class="p">,</span> <span class="n">dst</span><span class="p">)</span>
+        <span class="n">simpleHanoi</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">tmp</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="n">src</span><span class="p">)</span>
+
+<span class="n">n</span> <span class="o">=</span> <span class="mi">2</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">simpleHanoi</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>It’s easy to follow the arguments <code class="docutils literal notranslate"><span class="pre">A</span></code>, <code class="docutils literal notranslate"><span class="pre">C</span></code> and <code class="docutils literal notranslate"><span class="pre">B</span></code> as they’re passed to the function and assigned to parameters <code class="docutils literal notranslate"><span class="pre">src</span></code>, <code class="docutils literal notranslate"><span class="pre">dst</span></code> and <code class="docutils literal notranslate"><span class="pre">tmp</span></code>. These, along with <code class="docutils literal notranslate"><span class="pre">n</span></code>, are used explicitly in the print statement. For the recursive statements, the swapping alters which term is bound to a given peg:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>frame 1 function definition:
+     1) src = &#39;A&#39;
+     2) dst = &#39;C&#39;
+     3) tmp = &#39;B&#39;
+
+   1st recursive call:
+     1) src —&gt; src or &#39;A&#39; —&gt; &#39;A&#39;
+     2) dst —&gt; tmp or &#39;C&#39; —&gt; &#39;B&#39;
+     3) tmp —&gt; dst or &#39;B&#39; —&gt; &#39;C&#39;
+
+         frame 2 function definition:
+             1) src = &#39;A&#39;
+             2) dst = &#39;B&#39;
+             3) tmp = &#39;C&#39;
+
+   2nd recursive call:
+     1) src —&gt; tmp or &#39;A&#39; —&gt; &#39;B&#39;
+     2) dst —&gt; dst or &#39;C&#39; —&gt; &#39;C&#39;
+     3) tmp —&gt; src or &#39;B&#39; —&gt; &#39;A&#39;
+
+         frame 3 function definition:
+             1) src = &#39;B&#39;
+             2) dst = &#39;C&#39;
+             3) tmp = &#39;A&#39;
+</pre></div>
+</div>
+<p>Here is an expanded version of our <em>n = 2</em> call diagram, where I’ve written in the functions’ actual values into the function definitions and recursive calls:</p>
+<div class="figure align-center" id="id6">
+<a class="reference internal image-reference" href="_images/hanoi05.jpg"><img alt="alternate text" src="_images/hanoi05.jpg" style="width: 699.3px; height: 202.5px;" /></a>
+<p class="caption"><span class="caption-text">Figure 6. Call tree for <em>n = 2</em> with complete function definitions</span></p>
+</div>
+<p>You can now see clearly how frame 1’s first recursive call…</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>simpleHanoi(1, src=&#39;A&#39;, tmp=&#39;B&#39;, dst=&#39;C&#39;)
+</pre></div>
+</div>
+<p>…sets the parameters for frame 2’s function definition:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">simpleHanoi</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">src</span><span class="o">=</span><span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="n">dst</span><span class="o">=</span><span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="n">tmp</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">):</span>
+    <span class="c1"># frame 2 stuff</span>
+</pre></div>
+</div>
+<p>By the same token, frame 1’s second recursive call…</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>simpleHanoi(1, tmp=&#39;B&#39;, dst=&#39;C&#39;, src=&#39;A&#39;)
+</pre></div>
+</div>
+<p>…sets the parameters for frame 3’s function definition:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">simpleHanoi</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">src</span><span class="o">=</span><span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="n">dst</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">tmp</span><span class="o">=</span><span class="s1">&#39;A&#39;</span><span class="p">):</span>
+    <span class="c1"># frame 3 stuff</span>
+</pre></div>
+</div>
+<p>Since the frames where <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">==</span> <span class="pre">0</span></code> don’t do any work, I don’t include them in the diagram. You could say they are ‘ghost frames’ because they just open and close, returning program control to the calling frame. Still, these frames are vital, because it’s at this point that the recursion ‘turns around’. In a sense, these frames exert the pressure the program needs to bubble back up the call stack.</p>
+<p>You can see that a diagram that lists the complete function with all variables, parameters and arguments will get quite big quite quickly. So if you still don’t trust my explanation, I invite you to expand it out to cover <em>n = 3</em> or even <em>n = 4</em>. Eventually, I believe you’ll agree with me.</p>
+<p>In the next section [forthcoming], we’ll look at another way of solving the Tower of Hanoi problem. We’ll use the strict version, which won’t allow us to jump over the middle peg. It will be a little more laborious, but will also lead to some very surprising results.</p>
+</div>
+<div class="section" id="heuristics-and-exercises">
+<h2>Heuristics and Exercises<a class="headerlink" href="#heuristics-and-exercises" title="Permalink to this headline">¶</a></h2>
+<p>♦ Gathering as much information about a problem can have multiple benefits. As you develop your knowledge you can begin to see patterns and clues, which can inform the design of a recursive (or any other) solution.</p>
+<p>♦ If a recursive solution works for a binary tree of the smallest non-trivial size, there’s a good chance it will work for a binary tree of any size.</p>
+<p>♦ Swapping arguments is a powerful method for covering all contingencies of a recursive scenario - as long as you can keep track of what is going on.</p>
+<p>♦ You can control the order in which nodes are executed by changing the order of statements in the recursive function (ie, where the recursive calls are, in relation to the node’s statements)</p>
+<p>♦ We can write recursive functions in such a way that, at the leaf level of a binary tree, nothing happens (no statement is executed). However, this is very useful for when you just need to ‘turn around’ the recursive cascade.</p>
+<p>♦ The base case of a binary tree is always the root node.</p>
+<p><strong>Exercise:</strong> You’ve shown <code class="docutils literal notranslate"><span class="pre">simpleHanoi()</span></code> to your friends but they still don’t believe you, because everything is “just print statements” and there’s “no real data”. Following the usual rules, modify (or re-write) <code class="docutils literal notranslate"><span class="pre">simpleHanoi()</span></code> so that you begin with three lists…</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">A</span> <span class="o">=</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+<span class="n">B</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">C</span> <span class="o">=</span> <span class="p">[]</span>
+</pre></div>
+</div>
+<p>…and end up with…</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">A</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">B</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">C</span> <span class="o">=</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Your (recursive!) solution should provide for a way to store each step in some sort of data structure that will be returned by the function when it finishes executing.</p>
+<p>Now try to modify your solution to use a dictionary that’s initially defined as…</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="n">A</span><span class="p">:</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">B</span><span class="p">:</span> <span class="p">[],</span> <span class="n">C</span><span class="p">:</span> <span class="p">[]}</span>
+</pre></div>
+</div>
+<p>…and ends up in the following state:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="n">A</span><span class="p">:</span> <span class="p">[],</span> <span class="n">B</span><span class="p">:</span> <span class="p">[],</span> <span class="n">C</span><span class="p">:</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]}</span>
+</pre></div>
+</div>
+<p><strong>Exercise:</strong> Can you write a recursive solution to the Tower of Hanoi as a variation on our expansion of Pascal’s triangle? How about as an L-system? For this exercise, only reproduce which disk is moving for each step. (Hint: refer back to the part where I discuss the expansion of the series for various values of <em>n</em>).</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Boss Level: The Tower of Hanoi</a><ul>
+<li><a class="reference internal" href="#put-the-algorithm-in-your-hands">Put the algorithm in your hands</a></li>
+<li><a class="reference internal" href="#filling-in-the-binary-tree">Filling in the binary tree</a></li>
+<li><a class="reference internal" href="#designing-the-recursive-calls">Designing the recursive calls</a></li>
+<li><a class="reference internal" href="#why-does-it-work">Why does it work?</a></li>
+<li><a class="reference internal" href="#heuristics-and-exercises">Heuristics and Exercises</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="16 L-System Solution.html"
+                        title="previous chapter">Solving L-System Recursion</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/17 Hanoi.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="16 L-System Solution.html" title="Solving L-System Recursion"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Understanding Recursion Using Python 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, panopticonopolis.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
+    </div>
+  </body>
+</html>

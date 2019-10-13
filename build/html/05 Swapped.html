@@ -1,0 +1,251 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Recursion and Swapped Arguments &#8212; Understanding Recursion Using Python 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Palindromes and Recursion-as-Evaluation" href="06 Palindromes.html" />
+    <link rel="prev" title="Counting In Recursion" href="04 Counting.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="06 Palindromes.html" title="Palindromes and Recursion-as-Evaluation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="04 Counting.html" title="Counting In Recursion"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Understanding Recursion Using Python 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="recursion-and-swapped-arguments">
+<span id="swapped"></span><h1>Recursion and Swapped Arguments<a class="headerlink" href="#recursion-and-swapped-arguments" title="Permalink to this headline">¶</a></h1>
+<p>So far we’ve looked at a very simple recursive function, in the sense that <code class="docutils literal notranslate"><span class="pre">summ()</span></code> only had one argument that decremented regularly until we reached the base case. In a sense, this linear decrementing of <code class="docutils literal notranslate"><span class="pre">n</span></code> made it its own counter. We’ll see this counter functionality appear consistently as a great way to manage the recursive cascade.</p>
+<p>Of course, functions can take multiple arguments, and we can recursively modify those arguments to reach the answer quickly, skipping many steps along the way. The next algorithm we’ll look at does exactly this, in a very clever way.</p>
+<p>Python is agnostic about how arguments can be passed to functions. As long as the function receives the correct number of arguments and can run its computation without throwing any errors, the interpreter will be happy. So depending on what your function is trying to do, you can pass an integer in place of a float, or a tuple or even a string in place of a list. This is both a strength and a weakness of the language, but here we’ll only use it to our advantage.</p>
+<p>One way to benefit from this agnostic attitude is by writing recursive calls that re-arrange the order of arguments. We will use this to great effect later on as we draw fractals and solve for the Towers of Hanoi, but let’s begin with a simpler example: finding the greatest common divisor of two numbers.</p>
+<p>The problem is simple: given two positive, non-zero numbers, what is the largest number that can divide into both? For example, given the pair (20, 12), the greatest common divisor is 4.</p>
+<p>We can solve for this iteratively by exhaustive enumeration:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">gcdIter1</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">a</span> <span class="o">%</span> <span class="n">x</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">b</span> <span class="o">%</span> <span class="n">x</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">x</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">gcdIter1</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>The algorithm simply begins from <code class="docutils literal notranslate"><span class="pre">a</span></code> and decrements until <code class="docutils literal notranslate"><span class="pre">x</span></code> divides both <code class="docutils literal notranslate"><span class="pre">a</span></code> and <code class="docutils literal notranslate"><span class="pre">b</span></code> evenly. But this takes too many steps. If, for example, our pair was (2012314, 1234234) we would have to start from 2,012,234 and check each value until we reached the answer 2!</p>
+<div class="section" id="doing-it-euclid-s-way">
+<h2>Doing it Euclid’s way<a class="headerlink" href="#doing-it-euclid-s-way" title="Permalink to this headline">¶</a></h2>
+<p>Far better to use Euclid’s algorithm, which <a class="reference external" href="https://en.wikipedia.org/wiki/Euclidean_algorithm">asserts</a> that “the greatest common divisor of two numbers does not change if the larger number is replaced by its difference with the smaller number”. Using the pair (20, 12), our sequence of substitutions looks like this:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>20 - 12 = 8
+12 -  8 = 4
+ 8 -  4 = 4
+ 4 -  4 = 0
+
+ 4
+</pre></div>
+</div>
+<p>Or, for the pair (25, 20):</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>25 - 20 =  5
+20 -  5 = 15
+15 -  5 = 10
+10 -  5 =  5
+ 5 -  5 =  0
+
+ 5
+</pre></div>
+</div>
+<p>As we iterate through the algorithm, we get our answer when the last remainder becomes equal to the largest remaining number. This final remainder is the greatest common divisor (or highest common factor, if you prefer).</p>
+<p>In its classic form, Euclid’s algorithm asks us to find the larger number so we can order the subtraction correctly - we want to avoid being left with a negative number. We can avoid this by dividing the two numbers and selecting for the remainder, using the modulo operator <code class="docutils literal notranslate"><span class="pre">%</span></code>. In the worst case, the modulo will be the smaller number of the two. Consider the pair (12, 20):</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>12 % 20 = 12
+</pre></div>
+</div>
+<p>Since 12 divided by 20 has no other remainder than itself, we flip the values of the two variables and repeat the process:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>20 % 12 = 8
+12 %  8 = 4
+ 8 %  4 = 0
+</pre></div>
+</div>
+<p>As with the original algorithm, we return the last number that got us to 0. Iteratively, the code is very simple:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">gcdIter2</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+  <span class="k">while</span> <span class="n">b</span><span class="p">:</span>
+    <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">b</span><span class="p">,</span> <span class="n">a</span> <span class="o">%</span> <span class="n">b</span>
+  <span class="k">return</span> <span class="n">a</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">gcdIter2</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Inserting a step counter and print statements before and after the statement inside the while loop allows us to inspect the progression of the algorithm:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; step = 1
+&gt;&gt;&gt; a = 12 b = 20 a % b = 12
+&gt;&gt;&gt; a is now 20 and b is now 12
+
+&gt;&gt;&gt; step = 2
+&gt;&gt;&gt; a = 20 b = 12 a % b = 8
+&gt;&gt;&gt; a is now 12 and b is now 8
+
+&gt;&gt;&gt; step = 3
+&gt;&gt;&gt; a = 12 b = 8 a % b = 4
+&gt;&gt;&gt; a is now 8 and b is now 4
+
+&gt;&gt;&gt; step = 4
+&gt;&gt;&gt; a = 8 b = 4 a % b = 0
+&gt;&gt;&gt; a is now 4 and b is now 0
+
+&gt;&gt;&gt; 4
+</pre></div>
+</div>
+<p>Plugging in the pair (2012314, 1234234) shows that we can get to 2 in 13 steps, which, to put it mildly, is a vast improvement.</p>
+<p>Using this iterative solution as a blueprint, a recursive version is fairly straightforward. As long as <code class="docutils literal notranslate"><span class="pre">b</span> <span class="pre">!=</span> <span class="pre">0</span></code>, swap the values <code class="docutils literal notranslate"><span class="pre">a,</span> <span class="pre">b</span></code> with <code class="docutils literal notranslate"><span class="pre">b,</span> <span class="pre">a</span> <span class="pre">%</span> <span class="pre">b</span></code>, else <code class="docutils literal notranslate"><span class="pre">return</span> <span class="pre">a</span></code>. This provides us with both the base and recursive cases:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">gcdRecur</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">b</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">a</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">gcdRecur</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span> <span class="o">%</span> <span class="n">b</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If we add print-tracing as we did with <code class="docutils literal notranslate"><span class="pre">summ()</span></code>, we can precisely track the recursion:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">frame</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;at global frame =&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="s1">&#39;a =&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="s1">&#39;b =&#39;</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">gcdRecur</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">frame</span>
+    <span class="n">frame</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">b</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;base case frame =&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="s1">&#39;a =&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="s1">&#39;b =&#39;</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">a</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;recursive frame =&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="s1">&#39;a =&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="s1">&#39;b =&#39;</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">gcdRecur</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span> <span class="o">%</span> <span class="n">b</span><span class="p">)</span>
+        <span class="n">frame</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;recursive frame =&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="s1">&#39;a =&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="s1">&#39;b =&#39;</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="s1">&#39;gcdRecur(b, a % b) =&#39;</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">r</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">gcdRecur</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; at global frame = 0 a = 12 b = 20
+&gt;&gt;&gt; recursive frame = 1 a = 12 b = 20
+&gt;&gt;&gt; recursive frame = 2 a = 20 b = 12
+&gt;&gt;&gt; recursive frame = 3 a = 12 b = 8
+&gt;&gt;&gt; recursive frame = 4 a = 8 b = 4
+&gt;&gt;&gt; base case frame = 5 a = 4 b = 0
+&gt;&gt;&gt; recursive frame = 4 a = 8 b = 4 gcdRecur(b, a % b) = 4
+&gt;&gt;&gt; recursive frame = 3 a = 12 b = 8 gcdRecur(b, a % b) = 4
+&gt;&gt;&gt; recursive frame = 2 a = 20 b = 12 gcdRecur(b, a % b) = 4
+&gt;&gt;&gt; recursive frame = 1 a = 12 b = 20 gcdRecur(b, a % b) = 4
+&gt;&gt;&gt; 4
+</pre></div>
+</div>
+<p>This yields an interesting observation: once we have gotten to the base case, the returned value of <code class="docutils literal notranslate"><span class="pre">r</span> <span class="pre">==</span> <span class="pre">4</span></code> never changes. Look at the way the ‘return + recursive call’ was originally written:</p>
+<blockquote>
+<div><code class="docutils literal notranslate"><span class="pre">return</span> <span class="pre">gcdRecur(b,</span> <span class="pre">a</span> <span class="pre">%</span> <span class="pre">b)</span></code></div></blockquote>
+<p>How is this different from <code class="docutils literal notranslate"><span class="pre">summ()</span></code>, or, for that matter, your implementation of <code class="docutils literal notranslate"><span class="pre">factorial()</span></code>? Simply put, there is no further computation occurring within the return statement. With <code class="docutils literal notranslate"><span class="pre">return</span> <span class="pre">n</span> <span class="pre">+</span> <span class="pre">summ(n</span> <span class="pre">-</span> <span class="pre">1)</span></code> we still needed to add <code class="docutils literal notranslate"><span class="pre">n</span></code> from each frame, but here we just want the value of <code class="docutils literal notranslate"><span class="pre">a</span></code> that happened to be there the instant when <code class="docutils literal notranslate"><span class="pre">b</span> <span class="pre">==</span> <span class="pre">0</span></code> became <code class="docutils literal notranslate"><span class="pre">True</span></code>. Sometimes all we really want is what the base case tells us. In that case, no post-recursive computation is needed.</p>
+<p>You can further see the effect of this because, in the post-recursive portion of the readout, there is no change to the namespaces of <code class="docutils literal notranslate"><span class="pre">a</span></code> or <code class="docutils literal notranslate"><span class="pre">b</span></code> in any of the frames. They remain exactly as they were seeded during the pre-recursive portion of the cascade.</p>
+<p>Obviously, when compared with the iterative solution there is no real gain in terms of the number of steps. Both versions resolve (2012314, 1234234) in the same number of steps, if one were to equate the number of loop iterations with the number of function calls. And to be honest, from a performance point of view, the iterative example is faster. But we will see other examples where recursion is faster, and in some cases, the only possible solution.</p>
+</div>
+<div class="section" id="heuristics-and-exercises">
+<h2>Heuristics and Exercises<a class="headerlink" href="#heuristics-and-exercises" title="Permalink to this headline">¶</a></h2>
+<p>We can add several heuristics for thinking recursively from this example.</p>
+<p>♦ Learn to recognize an effective formula and how to translate it into code. Sometimes it is easier to first translate the formula into an iterative format, test and understand it, and use it as a guide to implementing the recursive solution.</p>
+<p>♦ In addition to performing operations on arguments during the recursive call (eg, <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">-</span> <span class="pre">1</span></code>, <code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">%</span> <span class="pre">b</span></code>, we can swap those arguments as well.</p>
+<p>♦ If the answer you need is captured by reaching the base case, there is no need to perform further computations on the return statement. Just return the desired value from the base case, and make sure that the return statement for the recursive call only carries that value back to the global frame.</p>
+<p><strong>Exercise:</strong> Implement a recursive algorithm <code class="docutils literal notranslate"><span class="pre">itos()</span></code> that converts a number, digit by digit, to a string. Don’t convert the entire integer to a string and return it - that’s cheating! Also, the final returned result should be a single string representing the entire number. For example, if we passed the integer <code class="docutils literal notranslate"><span class="pre">1234</span></code> to <code class="docutils literal notranslate"><span class="pre">itos()</span></code>, the function would return <code class="docutils literal notranslate"><span class="pre">'1234'</span></code> such that <code class="docutils literal notranslate"><span class="pre">type('1234')</span> <span class="pre">==</span> <span class="pre">str</span></code>.</p>
+<p>You can break this problem down into three parts.</p>
+<ol class="arabic simple">
+<li>How do you identify your base case?</li>
+<li>The pre-recursive work: How do you get to that base case? How do you need to seed your frames on the way to the base case?</li>
+<li>The post-recursive work: What would you add to the base case as it works its way back through the recursed calls? Does the order of what is returned and what is added matter?</li>
+</ol>
+<p>Annotate your solution with print statements that show, at each frame, the state of the function, specifying what is being passed and what is being returned, along with a counter that tracks the frames as they are opened and closed.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Recursion and Swapped Arguments</a><ul>
+<li><a class="reference internal" href="#doing-it-euclid-s-way">Doing it Euclid’s way</a></li>
+<li><a class="reference internal" href="#heuristics-and-exercises">Heuristics and Exercises</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="04 Counting.html"
+                        title="previous chapter">Counting In Recursion</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="06 Palindromes.html"
+                        title="next chapter">Palindromes and Recursion-as-Evaluation</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/05 Swapped.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="06 Palindromes.html" title="Palindromes and Recursion-as-Evaluation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="04 Counting.html" title="Counting In Recursion"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Understanding Recursion Using Python 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, panopticonopolis.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
+    </div>
+  </body>
+</html>

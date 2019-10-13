@@ -1,0 +1,451 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Recursion and Self-Similarity: Koch Curves &#8212; Understanding Recursion Using Python 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="The Sierpinski Triangle" href="14 Sierpinski.html" />
+    <link rel="prev" title="Recursive Approaches To Searching And Sorting" href="12 Search and Sort.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="14 Sierpinski.html" title="The Sierpinski Triangle"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="12 Search and Sort.html" title="Recursive Approaches To Searching And Sorting"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Understanding Recursion Using Python 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="recursion-and-self-similarity-koch-curves">
+<span id="koch-curves"></span><h1>Recursion and Self-Similarity: Koch Curves<a class="headerlink" href="#recursion-and-self-similarity-koch-curves" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="turtles-all-the-way-down">
+<h2>Turtles all the way down<a class="headerlink" href="#turtles-all-the-way-down" title="Permalink to this headline">¶</a></h2>
+<p>Let’s switch gears now and use recursion to draw some pretty pictures, specifically fractals. Fractals and recursion go together like chocolate and peanut butter, and seeing a figurative representation of recursion drawn line-by-line will further our understanding of how it works. We’ll start with the Koch curve.</p>
+<p>In order draw the Koch curve, we’ll use Python’s <code class="docutils literal notranslate"><span class="pre">turtle</span></code> library. So before we can define any function, we have to import the library into our program, and create a <code class="docutils literal notranslate"><span class="pre">turtle</span></code> object that will draw lines for us. We’ll also specify a window, line width, background color, etc:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">turtle</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">turtle</span><span class="o">.</span><span class="n">Turtle</span><span class="p">()</span>
+<span class="n">wn</span> <span class="o">=</span> <span class="n">turtle</span><span class="o">.</span><span class="n">Screen</span><span class="p">()</span>
+<span class="n">wn</span><span class="o">.</span><span class="n">bgcolor</span><span class="p">(</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
+
+<span class="n">t</span><span class="o">.</span><span class="n">color</span><span class="p">(</span><span class="s1">&#39;orange&#39;</span><span class="p">)</span>
+<span class="n">t</span><span class="o">.</span><span class="n">pensize</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+
+<span class="c1"># we&#39;ll put our ``koch()`` function here</span>
+
+<span class="n">wn</span><span class="o">.</span><span class="n">exitonclick</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>When you run this, you should see a black window pop up, with an orange cursor (the <code class="docutils literal notranslate"><span class="pre">turtle</span></code>) pointing to the right. Clicking on the window after the program has finished calls <code class="docutils literal notranslate"><span class="pre">wn.exitonclick()</span></code>, which deletes the window and exits the program. (Any print statements we choose to include during the design process will show up in the window from which you launch the program.) The <code class="docutils literal notranslate"><span class="pre">turtle</span></code> library has lots of features and we’ll only touch on a few of them here, so check out the <a class="reference external" href="https://docs.python.org/3.3/library/turtle.html?highlight=turtle">documentation</a> to see what else you can do with this simple but rich library.</p>
+<p>Let’s begin by drawing a straight line. To do that, we’ll lift up the pen and position it somewhat to the left of the center of the screen (by default the turtle is placed at x-y coordinates <code class="docutils literal notranslate"><span class="pre">(0,</span> <span class="pre">0)</span></code>). Now that we’re at <code class="docutils literal notranslate"><span class="pre">(-500,</span> <span class="pre">0)</span></code> we’ll the pen ‘down’ so we can begin drawing:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">turtle</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">turtle</span><span class="o">.</span><span class="n">Turtle</span><span class="p">()</span>
+<span class="n">wn</span> <span class="o">=</span> <span class="n">turtle</span><span class="o">.</span><span class="n">Screen</span><span class="p">()</span>
+<span class="n">wn</span><span class="o">.</span><span class="n">bgcolor</span><span class="p">(</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
+
+<span class="n">t</span><span class="o">.</span><span class="n">color</span><span class="p">(</span><span class="s1">&#39;orange&#39;</span><span class="p">)</span>
+<span class="n">t</span><span class="o">.</span><span class="n">pensize</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">t</span><span class="o">.</span><span class="n">penup</span><span class="p">()</span>
+<span class="n">t</span><span class="o">.</span><span class="n">setpos</span><span class="p">(</span><span class="o">-</span><span class="mi">500</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">t</span><span class="o">.</span><span class="n">pendown</span><span class="p">()</span>
+<span class="n">t</span><span class="o">.</span><span class="n">speed</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">koch</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
+
+<span class="n">koch</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+<span class="n">wn</span><span class="o">.</span><span class="n">exitonclick</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Ok, so this may not look like much. But you may be surprised to learn that you have already drawn a fractal - in this case, a Koch curve of order 0. So what do other orders of the curve look like, and what does recursion have to do with it?</p>
+<p>If a Koch curve of order 0 is a straight line, we generate further orders by trisecting the line, and inserting into the middle portion two lines joined at an acute angle. The length of each of the new lines is 1/3 of the total length of order 0. Traditionally, the inserted lines imply an equilateral triangle, but it can be any acute angle we like. This substitution increases the length of the curve by 33%. Crudely speaking, order 0 to order 1 looks like:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>order 0:            ______________
+
+                          /\
+                         /  \
+order 1:            ____/    \____
+</pre></div>
+</div>
+<p>In order to move from order 1 to order 2, we see that we now have not one line to trisect, but four. The process gets repeated until we have trisected all available lines to the desired order (or ‘depth’, which you’ll see is nicely aligned with the concept of ‘depth-first search’ that we first explored in <a class="reference internal" href="10 Fibonacci 1.html#fibonacci-1"><span class="std std-ref">Multiple Recursive Calls: Fibonacci Sequence, Part 1</span></a>).</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>                          /\
+                         /  \
+order 1:            ____/    \____
+
+                        __/\__
+                        \    /
+order 2:          __/\__/    \__/\__
+</pre></div>
+</div>
+<p>You can view several orders of the Koch curve generated <a class="reference external" href="https://www.youtube.com/watch?v=MTYW4Re_RsY">here</a>. However, this animation is deceptive, since it is not the way that recursion generates our curve.</p>
+<p>Now that we know what we are after, let’s first figure out how to draw an order 1 curve from scratch. Here we will simply tell our turtle how far to go, how many degrees to turn, etc:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">turtle</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">turtle</span><span class="o">.</span><span class="n">Turtle</span><span class="p">()</span>
+<span class="n">wn</span> <span class="o">=</span> <span class="n">turtle</span><span class="o">.</span><span class="n">Screen</span><span class="p">()</span>
+<span class="n">wn</span><span class="o">.</span><span class="n">bgcolor</span><span class="p">(</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
+
+<span class="n">t</span><span class="o">.</span><span class="n">color</span><span class="p">(</span><span class="s1">&#39;orange&#39;</span><span class="p">)</span>
+<span class="n">t</span><span class="o">.</span><span class="n">pensize</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">t</span><span class="o">.</span><span class="n">penup</span><span class="p">()</span>
+<span class="n">t</span><span class="o">.</span><span class="n">setpos</span><span class="p">(</span><span class="o">-</span><span class="mi">500</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">t</span><span class="o">.</span><span class="n">pendown</span><span class="p">()</span>
+<span class="n">t</span><span class="o">.</span><span class="n">speed</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">koch</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">size</span> <span class="o">//</span> <span class="mi">3</span><span class="p">)</span>        <span class="c1"># Go 1/3 of the way</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">left</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">size</span> <span class="o">//</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">right</span><span class="p">(</span><span class="mi">120</span><span class="p">)</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">size</span> <span class="o">//</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">left</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">size</span> <span class="o">//</span> <span class="mi">3</span><span class="p">)</span>
+
+<span class="n">size</span> <span class="o">=</span> <span class="mi">1000</span>
+<span class="n">order</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">koch</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
+
+<span class="n">wn</span><span class="o">.</span><span class="n">exitonclick</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>In addition to the instructions to draw forwards, and turn left or right, I’ve made the program a bit more flexible by creating <code class="docutils literal notranslate"><span class="pre">size</span></code> and <code class="docutils literal notranslate"><span class="pre">order</span></code> variables and passing them as arguments to <code class="docutils literal notranslate"><span class="pre">koch()</span></code>. Since order 0 is the simplest possible statement of the problem, that seems like a good candidate for our base case. Otherwise, turtle trisects the given <code class="docutils literal notranslate"><span class="pre">size</span></code> and inserts the implied equilateral triangle in the center section.</p>
+<p>Take a moment to understand that each next instruction to our turtle is executed from the turtle’s last position and direction. Also, by symmetry, if we turn 60° to the left and 120° to the right, it’s the same as turning 60° to the left and -120° to the left. Thus we can restate the drawing as a series of left-handed turns, a regularity that suggests that we can write the entire <code class="docutils literal notranslate"><span class="pre">else</span></code> block as a <code class="docutils literal notranslate"><span class="pre">for</span></code> loop:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">koch</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">angle</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">60</span><span class="p">,</span> <span class="o">-</span><span class="mi">120</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">0</span><span class="p">]:</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">size</span> <span class="o">//</span> <span class="mi">3</span><span class="p">)</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">left</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Question:</strong> Why do we need the final <code class="docutils literal notranslate"><span class="pre">0</span></code> in the list? What happens if we omit it?</p>
+<p>Now that we have sorted out the 0th and 1st order curves, we can consider more complex forms. In fact, we’re ready to insert our recursive call. If you think about it, the above code essentially represents the base case and a single recursive case, except there’s no recursive call, which is how we connect the recursive case to the base case.</p>
+<p>Given the way we have written our function, we know we need to pass <code class="docutils literal notranslate"><span class="pre">t</span></code>, <code class="docutils literal notranslate"><span class="pre">order</span></code> and <code class="docutils literal notranslate"><span class="pre">size</span></code> as the arguments of our recursive call. If our base case is <code class="docutils literal notranslate"><span class="pre">order</span> <span class="pre">==</span> <span class="pre">0</span></code> then we ought to be decrementing our way towards the base case by <code class="docutils literal notranslate"><span class="pre">order</span> <span class="pre">-</span> <span class="pre">1</span></code>. So a good working hypothesis for our recursive call is <code class="docutils literal notranslate"><span class="pre">koch(t,</span> <span class="pre">order</span> <span class="pre">-</span> <span class="pre">1,</span> <span class="pre">size)</span></code>. Of course, it has to be inside <code class="docutils literal notranslate"><span class="pre">koch()</span></code>, but where to put it?</p>
+<p>First think about where the recursive call <em>wouldn’t</em> go. Obviously, we don’t need it in the base case, so it must be somewhere in the <code class="docutils literal notranslate"><span class="pre">else</span></code> block. All the action is happening inside the <code class="docutils literal notranslate"><span class="pre">for</span></code> loop, so probably somewhere inside there. Now consider the two statements in the loop: one makes the turtle draw a line, the other turns the turtle by a certain angle. We are certainly not interested in modifying the angles, so the only piece of code that makes sense to address is <code class="docutils literal notranslate"><span class="pre">t.forward(size</span> <span class="pre">//</span> <span class="pre">3)</span></code>.</p>
+<p>Are we inserting the recursive call before or after drawing the line, or is something else involved? If you consult the animation above, you’ll notice that there is a pattern of substitution occurring that depends on the order curve we want. Let’s look at how we get from an order 1 to an order 2 Koch curve:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>                          /\
+                        b/  \c
+order 1:           _____/    \_____
+                     a          d
+
+                       b__/\__c
+                        \    /
+order 2:          __/\__/    \__/\__
+                    a            d
+</pre></div>
+</div>
+<p>For every segment <em>a, b, c, d</em> we want to insert a trisection, which implies an additional iteration of <code class="docutils literal notranslate"><span class="pre">koch()</span></code>. So it looks like we want to actually <em>replace</em> <code class="docutils literal notranslate"><span class="pre">``t.forward(size</span> <span class="pre">//</span> <span class="pre">3)``</span></code> with the recursive call. But if we get rid of <code class="docutils literal notranslate"><span class="pre">``t.forward(size</span> <span class="pre">//</span> <span class="pre">3)``</span></code> what will do the actual drawing? This is where the base case comes in, as <code class="docutils literal notranslate"><span class="pre">``t.forward(size)``</span></code> is pretty much the only thing it does.</p>
+<p>Putting it all together, our recursive function looks like this:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">koch</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">angle</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">60</span><span class="p">,</span> <span class="o">-</span><span class="mi">120</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">0</span><span class="p">]:</span>
+            <span class="n">koch</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">left</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This looks good, right? Except if you run it, the turtle will quickly run off the screen and you won’t see more than a couple of segments of the curve. I failed to modify the recursive function’s <code class="docutils literal notranslate"><span class="pre">size</span></code> argument, so in the process of recursing we also super-sized the drawing. We really want to keep fixed the distance between the start and the end of our drawing. No matter how many orders of recursion we request, we have to begin at <code class="docutils literal notranslate"><span class="pre">(-500,</span> <span class="pre">0)</span></code> and end at <code class="docutils literal notranslate"><span class="pre">(500,</span> <span class="pre">0)</span></code>. Since we are operating on a third of the length of <code class="docutils literal notranslate"><span class="pre">size</span></code>, we want that proportion to be preserved, hence we modify our recursive call to reflect this: <code class="docutils literal notranslate"><span class="pre">koch(t,</span> <span class="pre">order</span> <span class="pre">-</span> <span class="pre">1,</span> <span class="pre">size</span> <span class="pre">//</span> <span class="pre">3)</span></code>.</p>
+<p>With that modification, our final code looks like this:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">turtle</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">turtle</span><span class="o">.</span><span class="n">Turtle</span><span class="p">()</span>
+<span class="n">wn</span> <span class="o">=</span> <span class="n">turtle</span><span class="o">.</span><span class="n">Screen</span><span class="p">()</span>
+<span class="n">wn</span><span class="o">.</span><span class="n">bgcolor</span><span class="p">(</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
+
+<span class="n">t</span><span class="o">.</span><span class="n">color</span><span class="p">(</span><span class="s1">&#39;orange&#39;</span><span class="p">)</span>
+<span class="n">t</span><span class="o">.</span><span class="n">pensize</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">t</span><span class="o">.</span><span class="n">penup</span><span class="p">()</span>
+<span class="n">t</span><span class="o">.</span><span class="n">setpos</span><span class="p">(</span><span class="o">-</span><span class="mi">500</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">t</span><span class="o">.</span><span class="n">pendown</span><span class="p">()</span>
+<span class="n">t</span><span class="o">.</span><span class="n">speed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>          <span class="c1">#fastest draw setting, 10 is slowest</span>
+
+<span class="k">def</span> <span class="nf">koch</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">angle</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">60</span><span class="p">,</span> <span class="o">-</span><span class="mi">120</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">0</span><span class="p">]:</span>
+            <span class="n">koch</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span> <span class="o">//</span> <span class="mi">3</span><span class="p">)</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">left</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span>
+
+<span class="n">size</span> <span class="o">=</span> <span class="mi">1000</span>
+<span class="n">order</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">koch</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
+
+<span class="n">wn</span><span class="o">.</span><span class="n">exitonclick</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>If we draw the Koch curve using a higher order, say 3 or 4, the final curve is drawn perfectly, starting from the first segment and all the way to the last. This is very different from the YouTube animation above, which showed a complete rendering of one order before moving on to the next. It tells us something important about the way recursion is functioning both here, and generally.</p>
+</div>
+<div class="section" id="tracing-the-recursive-calls">
+<h2>Tracing the recursive calls<a class="headerlink" href="#tracing-the-recursive-calls" title="Permalink to this headline">¶</a></h2>
+<p>As we’ve discussed before, every time a recursive call is invoked, the current function is interrupted and the program flow pursues the recursion until it reaches the base case (or is otherwise interrupted, as we saw with <code class="docutils literal notranslate"><span class="pre">pal()</span></code>). So <code class="docutils literal notranslate"><span class="pre">koch()</span></code> is going to keep recursing until it reaches the base case, and <em>only then</em> will it begin drawing. In terms of frames, our ‘talking algorithm’ would narrate the recursion for order 3 as follows:</p>
+<ol class="arabic simple" start="0">
+<li>Global frame says, “Please compute <code class="docutils literal notranslate"><span class="pre">koch(t,</span> <span class="pre">3,</span> <span class="pre">1000)</span></code>”</li>
+<li>Frame 1 says, “I can’t compute <code class="docutils literal notranslate"><span class="pre">koch(t,</span> <span class="pre">3,</span> <span class="pre">1000)</span></code> because I first need to compute <code class="docutils literal notranslate"><span class="pre">koch(t,</span> <span class="pre">2,</span> <span class="pre">333)</span></code>”</li>
+<li>Frame 2 says, “I can’t compute <code class="docutils literal notranslate"><span class="pre">koch(t,</span> <span class="pre">2,</span> <span class="pre">333)</span></code> because I first need to compute <code class="docutils literal notranslate"><span class="pre">koch(t,</span> <span class="pre">1,</span> <span class="pre">111)</span></code>”</li>
+<li>Frame 3 says, “I can’t compute <code class="docutils literal notranslate"><span class="pre">koch(t,</span> <span class="pre">1,</span> <span class="pre">111)</span></code> because I first need to compute <code class="docutils literal notranslate"><span class="pre">koch(t,</span> <span class="pre">0,</span> <span class="pre">37)</span></code>”</li>
+<li>Frame 4 says, “I found the base case: I know how to compute <code class="docutils literal notranslate"><span class="pre">koch(t,</span> <span class="pre">0,</span> <span class="pre">37)</span></code>! Here you go:”</li>
+</ol>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>_______________
+</pre></div>
+</div>
+<p>Wait, what? Where’s the rest of it? Let’s go back to the code and unpack it by expanding the <code class="docutils literal notranslate"><span class="pre">for</span></code> loop into a series of statements similar to what we had earlier, but where <code class="docutils literal notranslate"><span class="pre">t.forward(size</span> <span class="pre">//</span> <span class="pre">3)</span></code> is replaced by the recursive call:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">koch</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">koch</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span> <span class="o">//</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">left</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>
+        <span class="n">koch</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span> <span class="o">//</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">right</span><span class="p">(</span><span class="mi">120</span><span class="p">)</span>
+        <span class="n">koch</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span> <span class="o">//</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">left</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>
+        <span class="n">koch</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span> <span class="o">//</span> <span class="mi">3</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Ah. It’s now clear that the first recursive call only asked turtle to get to the base case and, once it got there, drew a line with length of 37. After that, we moved on to <code class="docutils literal notranslate"><span class="pre">t.left(60)</span></code>, where we repositioned the turtle at an angle of 60° to the left. We recursed once again until we drew, using the base case, another segment of length 37. Following a rightward turn of 120° (or leftward turn of -120°, as we wrote in the <code class="docutils literal notranslate"><span class="pre">for</span></code> loop), we drew the third segment. The final recursive call is executed after another leftward 60° turn, leaving us with…</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>       /\
+      /  \
+_____/    \_____
+</pre></div>
+</div>
+<p>…but <em>always</em> drawn in terms of the subdivision of length that corresponds with how many calls it took us to get to the base case - in this case, a segment length of 37. So we know that the only time the program draws anything will be at the base case, and it will be that smallest length, which corresponds to the number of divisions by 3 needed to reach order 0. That is, if we only drew an order 1 curve (ie, one trisection), at <code class="docutils literal notranslate"><span class="pre">size</span> <span class="pre">==</span> <span class="pre">1000</span></code> and <code class="docutils literal notranslate"><span class="pre">order</span> <span class="pre">==</span> <span class="pre">1</span></code>, we would have <code class="docutils literal notranslate"><span class="pre">size</span> <span class="pre">//</span> <span class="pre">3</span> <span class="pre">==</span> <span class="pre">333</span></code> at <code class="docutils literal notranslate"><span class="pre">order</span> <span class="pre">==</span> <span class="pre">0</span></code>, so every length drawn would have to be <code class="docutils literal notranslate"><span class="pre">333</span></code>.</p>
+<p>Here is a diagram that shows the tree created by this series of recursive calls:</p>
+<div class="figure align-center" id="id1">
+<a class="reference internal image-reference" href="_images/koch1.jpg"><img alt="alternate text" src="_images/koch1.jpg" style="width: 773.5px; height: 670.5px;" /></a>
+<p class="caption"><span class="caption-text">Figure 1. Order 1 call tree for <code class="docutils literal notranslate"><span class="pre">koch()</span></code></span></p>
+</div>
+<p>If this is a complete iteration of the <code class="docutils literal notranslate"><span class="pre">else</span></code> block, the next reasonable question is: How do we begin the next trisection at the correct angle? Or, how do we go from…</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>                      __/
+                      \
+__/\__   …to…   __/\__/    …?
+</pre></div>
+</div>
+<p>After all, if we only run the program using <code class="docutils literal notranslate"><span class="pre">order</span> <span class="pre">==</span> <span class="pre">1</span></code> it finishes with the turtle pointing straight to the left and not angled upwards by 60°. Let’s look at a diagram for <code class="docutils literal notranslate"><span class="pre">order</span> <span class="pre">==</span> <span class="pre">2</span></code> to better understand what’s going on:</p>
+<div class="figure align-center" id="id2">
+<a class="reference internal image-reference" href="_images/koch2.jpg"><img alt="alternate text" src="_images/koch2.jpg" style="width: 699.9px; height: 524.6999999999999px;" /></a>
+<p class="caption"><span class="caption-text">Figure 2. Order 2 call tree for <code class="docutils literal notranslate"><span class="pre">koch()</span></code></span></p>
+</div>
+<p>The turn happens when frame 2 has run through all of its statements and is discarded. Where does this put us? Back at frame 1, at the next statement: <code class="docutils literal notranslate"><span class="pre">t.left(60)</span></code>! Once the program turns left by 60°, the next recursive call goes into effect. Frame 3 will go through the same set of drawings and turns for the second call, then turn right 120°, repeat, and finally do the same for one more repetition after turning left 60°. While Figure 2 only shows half of <code class="docutils literal notranslate"><span class="pre">order</span> <span class="pre">==</span> <span class="pre">2</span></code>, if we continue assigning each subset of four lines a letter, we can see the following, where <em>A, C, E</em> and <em>G</em> are completed recursive calls, and <em>B, D</em> and <em>F</em> are turtle turns:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>        D
+     C__/\__E
+      \    /
+__/\__/    \__/\__
+  A   B    F   G
+</pre></div>
+</div>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span>…
+else:
+    koch(t, order - 1, size//3)        # A
+    t.left(60)                         # B
+
+    koch(t, order - 1, size//3)        # C
+    t.right(120)                       # D
+
+    koch(t, order - 1, size//3)        # E
+    t.left(60)                         # F
+
+    koch(t, order - 1, size//3)        # G
+</pre></div>
+</div>
+<p>We’ve already seen the consequences of multiple recursive calls with the Fibonacci sequence. In that case, two recursive calls created two branches per node (or frame). In the accompanying exercise, the tribonacci sequence called for three recursive calls per function. With <code class="docutils literal notranslate"><span class="pre">koch()</span></code> we have no less than four.</p>
+<p>Just as with <code class="docutils literal notranslate"><span class="pre">fib()</span></code> and <code class="docutils literal notranslate"><span class="pre">trib()</span></code>, once a function is called, the recursion must continue until it’s complete. This rule still holds even when we are confronted with multiple recursive calls in a single function. In fact it makes it easier to think through the function, since you only need to be concerned with working your way through one thread at a time. We thought of <code class="docutils literal notranslate"><span class="pre">fib()</span></code> as recursing all the way down the ‘left-hand’ side of the call tree. In the same way, the first <code class="docutils literal notranslate"><span class="pre">koch(t,</span> <span class="pre">order-1,</span> <span class="pre">size</span> <span class="pre">//</span> <span class="pre">3)</span></code> call resolves every subsequent first <code class="docutils literal notranslate"><span class="pre">koch(t,</span> <span class="pre">order-1,</span> <span class="pre">size</span> <span class="pre">//</span> <span class="pre">3)</span></code> call. But when we get to a base case, we know that the next three recursive calls will also hit the base case right away. This is what allows the drawing to keep its integrity.</p>
+<p>Another essential detail about <code class="docutils literal notranslate"><span class="pre">koch()</span></code> is the lack of return statements, or any variables that capture the output of the recursed call. It’s simply not necessary. The program is basically saying, ‘at this point just get to the base case, do what it says and then carry on with the next line’. There’s nothing to return, nothing to store, and (unlike <code class="docutils literal notranslate"><span class="pre">fib()</span></code> and <code class="docutils literal notranslate"><span class="pre">trib()</span></code>) no additional computation needed beyond the execution of the base case itself. All it does is draw the line of the correct length. The subsequent line of code positions the turtle at the correct angle to draw the next line - but only once the preceding recursive call has returned from the base case.</p>
+</div>
+<div class="section" id="the-koch-snowflake">
+<h2>The Koch snowflake<a class="headerlink" href="#the-koch-snowflake" title="Permalink to this headline">¶</a></h2>
+<p>We can now extend the Koch curve into what is known as the Koch snowflake. Instead of executing orders of recursion on a single line, let’s do the same trisection on each side of a triangle. A good way to begin thinking about this is to ask: What is an order 0 snowflake? If an order 0 curve is a straight line, it stands to reason that an order 0 snowflake is simply a triangle.</p>
+<p>So we first make sure we can draw a triangle. We’ll reposition our starting point and shorten the initial length so that everything fits on the screen (well, it fits on my screen - you may have to fiddle with the values to ensure it fits yours). Then we’ll declare a separate function that will draw an equilateral triangle in a way very similar to what we’ve done above:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">turtle</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">turtle</span><span class="o">.</span><span class="n">Turtle</span><span class="p">()</span>
+<span class="n">wn</span> <span class="o">=</span> <span class="n">turtle</span><span class="o">.</span><span class="n">Screen</span><span class="p">()</span>
+<span class="n">wn</span><span class="o">.</span><span class="n">bgcolor</span><span class="p">(</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
+
+<span class="n">t</span><span class="o">.</span><span class="n">color</span><span class="p">(</span><span class="s2">&quot;orange&quot;</span><span class="p">)</span>
+<span class="n">t</span><span class="o">.</span><span class="n">pensize</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">t</span><span class="o">.</span><span class="n">penup</span><span class="p">()</span>
+<span class="n">t</span><span class="o">.</span><span class="n">setpos</span><span class="p">(</span><span class="o">-</span><span class="mi">450</span><span class="p">,</span> <span class="mi">250</span><span class="p">)</span>
+<span class="n">t</span><span class="o">.</span><span class="n">pendown</span><span class="p">()</span>
+<span class="n">t</span><span class="o">.</span><span class="n">speed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">triangle</span><span class="p">(</span><span class="n">size</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">angle</span> <span class="ow">in</span> <span class="p">[</span><span class="o">-</span><span class="mi">120</span><span class="p">,</span> <span class="o">-</span><span class="mi">120</span><span class="p">,</span> <span class="mi">0</span><span class="p">]:</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">left</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span>
+
+<span class="n">size</span> <span class="o">=</span> <span class="mi">900</span>
+<span class="n">triangle</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now let’s think how we can apply <code class="docutils literal notranslate"><span class="pre">koch()</span></code> to a polygon as opposed to simply a line. Well, a polygon is just lines joined at angles, so we want to build the curve on a per-line basis. That is, we don’t need to consider the polygon as a whole. As long as we have the instructions to, on the one hand, build the polygon, and on the other, build a curve for each line, we should be in good shape, so to speak.</p>
+<p>Thinking this way is helpful because otherwise you may find yourself considering how to integrate the polygon with <code class="docutils literal notranslate"><span class="pre">koch()</span></code> in a way that is overly complicated. The description I’ve just offered implies a division of labor:</p>
+<ol class="arabic simple">
+<li>Set up the polygon.</li>
+<li>In place of drawing the first line of the polygon, call <code class="docutils literal notranslate"><span class="pre">koch()</span></code> and let it do the work.</li>
+<li>When the first side is completed, turn the turtle at the appropriate angle.</li>
+<li>Invoke <code class="docutils literal notranslate"><span class="pre">koch()</span></code> again.</li>
+<li>Continue until all sides have been completed and the turtle is back where it started.</li>
+</ol>
+<p>The other implication is that we would be better off computing our polygon and our curve separately. There’s no beter way to do that than to write separate functions. Assuming we change nothing about <code class="docutils literal notranslate"><span class="pre">koch()</span></code>, what does this mean for <code class="docutils literal notranslate"><span class="pre">triangle()</span></code>? Here’s a first draft, so we can just see the two functions together:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">triangle</span><span class="p">(</span><span class="n">size</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">angle</span> <span class="ow">in</span> <span class="p">[</span><span class="o">-</span><span class="mi">120</span><span class="p">,</span> <span class="o">-</span><span class="mi">120</span><span class="p">,</span> <span class="mi">0</span><span class="p">]:</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">left</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">koch</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">koch</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span> <span class="o">//</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">left</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>
+        <span class="n">koch</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span> <span class="o">//</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">right</span><span class="p">(</span><span class="mi">120</span><span class="p">)</span>
+        <span class="n">koch</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span> <span class="o">//</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">left</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>
+        <span class="n">koch</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span> <span class="o">//</span> <span class="mi">3</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now, how do we get the two functions talking to one another? Let’s go back to how we set up our recursive call in <code class="docutils literal notranslate"><span class="pre">koch()</span></code>. We quickly established that we wanted to substitute <code class="docutils literal notranslate"><span class="pre">t.forward(size</span> <span class="pre">//</span> <span class="pre">3)</span></code> with the recursive call <code class="docutils literal notranslate"><span class="pre">koch(t,</span> <span class="pre">order</span> <span class="pre">-</span> <span class="pre">1,</span> <span class="pre">size</span> <span class="pre">//</span> <span class="pre">3)</span></code>. Consulting our pseudocode above, you can see a similar opportunity: in <code class="docutils literal notranslate"><span class="pre">triangle()</span></code>, <code class="docutils literal notranslate"><span class="pre">`t.forward(size)</span></code> is exactly where we want <code class="docutils literal notranslate"><span class="pre">koch()</span></code> to do its work. Here is our final code, with the re-introduction of the <code class="docutils literal notranslate"><span class="pre">for</span></code> loop in <code class="docutils literal notranslate"><span class="pre">koch()</span></code>:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">turtle</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">turtle</span><span class="o">.</span><span class="n">Turtle</span><span class="p">()</span>
+<span class="n">wn</span> <span class="o">=</span> <span class="n">turtle</span><span class="o">.</span><span class="n">Screen</span><span class="p">()</span>
+<span class="n">wn</span><span class="o">.</span><span class="n">bgcolor</span><span class="p">(</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
+
+<span class="n">t</span><span class="o">.</span><span class="n">color</span><span class="p">(</span><span class="s2">&quot;orange&quot;</span><span class="p">)</span>
+<span class="n">t</span><span class="o">.</span><span class="n">pensize</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">t</span><span class="o">.</span><span class="n">penup</span><span class="p">()</span>
+<span class="n">t</span><span class="o">.</span><span class="n">setpos</span><span class="p">(</span><span class="o">-</span><span class="mi">450</span><span class="p">,</span> <span class="mi">250</span><span class="p">)</span>
+<span class="n">t</span><span class="o">.</span><span class="n">pendown</span><span class="p">()</span>
+<span class="n">t</span><span class="o">.</span><span class="n">speed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">triangle</span><span class="p">(</span><span class="n">size</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">angle</span> <span class="ow">in</span> <span class="p">[</span><span class="o">-</span><span class="mi">120</span><span class="p">,</span> <span class="o">-</span><span class="mi">120</span><span class="p">,</span> <span class="mi">0</span><span class="p">]:</span>
+        <span class="n">koch</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">left</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">koch</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">angle</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">60</span><span class="p">,</span> <span class="o">-</span><span class="mi">120</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">0</span><span class="p">]:</span>
+            <span class="n">koch</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">order</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">size</span> <span class="o">//</span> <span class="mi">3</span><span class="p">)</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">left</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span>
+
+<span class="n">size</span> <span class="o">=</span> <span class="mi">900</span>
+<span class="n">order</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">triangle</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
+
+<span class="n">wn</span><span class="o">.</span><span class="n">exitonclick</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="heuristics-and-exercises">
+<h2>Heuristics and Exercises<a class="headerlink" href="#heuristics-and-exercises" title="Permalink to this headline">¶</a></h2>
+<p>♦ The simplest form of a fractal is known as order 0. When creating a recursively drawn solution, first learn how to draw that shape, and then use that as the base case. Then design the code that would draw the order 1 shape, using a simple <code class="docutils literal notranslate"><span class="pre">if/else</span></code> branching. Your next step should be to design the recursive call that links the two, such that all recursive calls ultimately resolve themselves at the base case.</p>
+<p>♦ In some cases, for exampe when the purpose of the program is drawing, you may not even need to return a value from a recursive call, or store it in a variable. It’s completely sufficient to get to the base case, and simply allow the code to continue executing.</p>
+<p><strong>Exercise:</strong> An <em>n-flake</em> is any polygon whose lines are recursively replaced with the polygon itself. Obviously, the Koch snowflake is one such n-flake. Modify <code class="docutils literal notranslate"><span class="pre">koch()</span></code> to an n-flake whose order 0 is a square, and which ‘grows’ squares on the same trisected basis as the Koch curve. At what depth do the new squares begin to overlap?  At what depth do the drawing’s details become almost imperceptible? Can you think of a way to ‘magnify’ the view of a part of the pattern?</p>
+<p>You may want to use the methods <code class="docutils literal notranslate"><span class="pre">t.fillcolor()</span></code>, <code class="docutils literal notranslate"><span class="pre">t.begin_fill()</span></code> and <code class="docutils literal notranslate"><span class="pre">t.end_fill()</span></code> to fill in the polygon, and play around with other parameters, such as <code class="docutils literal notranslate"><span class="pre">pensize()</span></code>, to get a better view of what’s going on.</p>
+<p><strong>Credit:</strong> Much of this material adapted from Chapter 18.1 of the fantastic resource, <a class="reference external" href="http://openbookproject.net/thinkcs/python/english3e/recursion.html">Think Like A Computer Scientist</a></p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Recursion and Self-Similarity: Koch Curves</a><ul>
+<li><a class="reference internal" href="#turtles-all-the-way-down">Turtles all the way down</a></li>
+<li><a class="reference internal" href="#tracing-the-recursive-calls">Tracing the recursive calls</a></li>
+<li><a class="reference internal" href="#the-koch-snowflake">The Koch snowflake</a></li>
+<li><a class="reference internal" href="#heuristics-and-exercises">Heuristics and Exercises</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="12 Search and Sort.html"
+                        title="previous chapter">Recursive Approaches To Searching And Sorting</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="14 Sierpinski.html"
+                        title="next chapter">The Sierpinski Triangle</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/13 Koch Curves.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="14 Sierpinski.html" title="The Sierpinski Triangle"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="12 Search and Sort.html" title="Recursive Approaches To Searching And Sorting"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Understanding Recursion Using Python 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, panopticonopolis.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
+    </div>
+  </body>
+</html>

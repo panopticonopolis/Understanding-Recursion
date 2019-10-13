@@ -1,0 +1,480 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Summing a List of Lists &#8212; Understanding Recursion Using Python 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Palindromes and Recursion-as-Evaluation" href="06 Palindromes.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="06 Palindromes.html" title="Palindromes and Recursion-as-Evaluation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Understanding Recursion Using Python 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="summing-a-list-of-lists">
+<span id="lists-of-lists"></span><h1>Summing a List of Lists<a class="headerlink" href="#summing-a-list-of-lists" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="recursion-but-only-when-it-s-needed">
+<h2>Recursion…but only when it’s needed<a class="headerlink" href="#recursion-but-only-when-it-s-needed" title="Permalink to this headline">¶</a></h2>
+<p>In the preceding section on detecting palindromicity, we wrote code where we didn’t need to run through all the possible recursive cases. In the case of  <code class="docutils literal notranslate"><span class="pre">pal()</span></code>, if at any point <code class="docutils literal notranslate"><span class="pre">s[0]</span> <span class="pre">!=</span> <span class="pre">s[-1]</span></code>, we returned <code class="docutils literal notranslate"><span class="pre">False</span></code> and sent the entire recursive cascade into reverse, without ever reaching the base case. We were able to do this by moving away from the simplest implementation of recursion, which can be represented as:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">foo</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">base</span> <span class="n">case</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">base</span> <span class="n">case</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">foo</span><span class="p">(</span><span class="c1">#modified n)</span>
+</pre></div>
+</div>
+<p>Now we have something a little more nuanced:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">foo</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">base</span> <span class="n">case</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="c1">#some condition:</span>
+            <span class="k">return</span> <span class="n">foo</span><span class="p">(</span><span class="c1">#modified n)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+</pre></div>
+</div>
+<p>One of the drawbacks of teaching recursion with only the most common examples (ie, factorial, Fibonacci) is that these examples write the recursive call as part of the return statement. For those algorithms, it’s appropriate that the ‘return + recursive call’ statement drives the entire post-recursive program flow. Recursion is about much more than just having a ‘return + recursive call’ statement at the end of your function. As <code class="docutils literal notranslate"><span class="pre">pal()</span></code> made clear, recursive calls can work in harmony with other operations to reach an answer.</p>
+<p>If we can place the ‘return + recursive call’ construction anywhere we need within the function, then it stands to reason that recursive calls can be entirely separate from return statements, too. We’ve already started to peel this apart in <a class="reference internal" href="04 Counting.html#counting"><span class="std std-ref">Counting In Recursion</span></a> by creating an intermediate variable <code class="docutils literal notranslate"><span class="pre">r</span></code> in order to print out the post-recursive portion of the cascade. Now consider a scenario where you want to return the value generated by a recursive call, but also need to perform an additional computation on that value with a specific value in each frame. To illustrate, here is another example, and one where recursion really begins to shine.</p>
+<p>Say we have a list <code class="docutils literal notranslate"><span class="pre">L</span></code> of integers, and we want to return the sum. However, some of these integers sit in sublists within <code class="docutils literal notranslate"><span class="pre">L</span></code>. We can’t use Python’s <code class="docutils literal notranslate"><span class="pre">sum()</span></code> method, since it requires that the list be ‘flat’ - we get a <code class="docutils literal notranslate"><span class="pre">Type</span> <span class="pre">Error</span></code> if we try to sum an integer with a list. While we know that our input will only contain integers, those integers could be contained in lists within lists within lists, oh my.</p>
+<p>If we knew that we would only be getting a list with lists inside it - call it a ‘depth of two’ for the sake of convenience - then it wouldn’t be hard to write an iterative solution:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">sumListIter</span><span class="p">(</span><span class="n">L</span><span class="p">):</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">L</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">total</span> <span class="o">+=</span> <span class="n">e</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">total</span> <span class="o">+=</span> <span class="n">e</span>
+    <span class="k">return</span> <span class="n">total</span>
+
+<span class="n">L</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="mi">3</span><span class="p">,</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]]</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">sumListIter</span><span class="p">(</span><span class="n">L</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; 15
+</pre></div>
+</div>
+<p>Unfortunately, if we appended <code class="docutils literal notranslate"><span class="pre">[[6]]</span></code> to <code class="docutils literal notranslate"><span class="pre">L</span></code> we’d be out of luck. We could keep writing <code class="docutils literal notranslate"><span class="pre">for</span></code> loops to intercept varying depths of nestedness but things will get ugly quickly, and ugly code is always difficult to maintain. Also, there could always be a depth that we hadn’t thought to cover, like <code class="docutils literal notranslate"><span class="pre">[[[[[2]]]]]</span></code>.</p>
+<p>How would we approach this recursively? Let’s start with some pseudo-code:</p>
+<ol class="arabic simple">
+<li>Iterate over the items in list <code class="docutils literal notranslate"><span class="pre">L</span></code></li>
+<li>If an item is a list, iterate over it and add it to <code class="docutils literal notranslate"><span class="pre">total</span></code></li>
+<li>Else an item is an integer, so add it to <code class="docutils literal notranslate"><span class="pre">total</span></code></li>
+<li>When there are no more items in <code class="docutils literal notranslate"><span class="pre">L</span></code>, return <code class="docutils literal notranslate"><span class="pre">total</span></code></li>
+</ol>
+<p>Admittedly, this second step is a bit of a puzzle. How can we iterate over a list if we’ve already passed step 1), which is the point in the function where we iterate over a list? It’s precisely here that recursion comes in. We can rewrite the second step as a call back to the first step:</p>
+<ol class="arabic simple">
+<li>Iterate over the items in list <code class="docutils literal notranslate"><span class="pre">L</span></code></li>
+<li>If an item is a list, send it to step 1.</li>
+<li>Else an item is an integer, so add it to <code class="docutils literal notranslate"><span class="pre">total</span></code></li>
+<li>When there are no more items in <code class="docutils literal notranslate"><span class="pre">L</span></code>, return <code class="docutils literal notranslate"><span class="pre">total</span></code></li>
+</ol>
+<p>Before we translate this into code, we have to answer a few questions. How do we know whether a variable represents an integer or a list? You have probably used the <code class="docutils literal notranslate"><span class="pre">type()</span></code> method to figure out what a particular variable or constant is:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>x = 6
+type(x)
+&gt;&gt;&gt; &lt;class &#39;int&#39;&gt;
+
+type(6)
+&gt;&gt;&gt; &lt;class &#39;int&#39;&gt;
+
+type([6])
+&gt;&gt;&gt; &lt;class &#39;list&#39;&gt;
+</pre></div>
+</div>
+<p>An empty list is still a list, of course:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>type([])
+&gt;&gt;&gt; &lt;class &#39;list&#39;&gt;
+</pre></div>
+</div>
+<p>So for some element <code class="docutils literal notranslate"><span class="pre">e</span></code> in list <code class="docutils literal notranslate"><span class="pre">L</span></code>, let’s use this syntax to our advantage to translate the first two lines of our pseudocode:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">sumListRecur</span><span class="p">(</span><span class="n">L</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">L</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">([]):</span>
+            <span class="n">sumListRecur</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We add the third line of our pseudocode to cover for when <code class="docutils literal notranslate"><span class="pre">e</span></code> is an integer, and declare a variable <code class="docutils literal notranslate"><span class="pre">total</span></code> to collect the sums. Finally, we add the fourth line, which is the <code class="docutils literal notranslate"><span class="pre">return</span></code> statement:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">sumListRecur</span><span class="p">(</span><span class="n">L</span><span class="p">):</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">L</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">([]):</span>
+            <span class="n">sumListRecur</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">total</span> <span class="o">+=</span> <span class="n">e</span>
+    <span class="k">return</span> <span class="n">total</span>
+</pre></div>
+</div>
+<p>If we run it with <code class="docutils literal notranslate"><span class="pre">L</span> <span class="pre">=</span> <span class="pre">[1,</span> <span class="pre">2,</span> <span class="pre">[11,</span> <span class="pre">13],</span> <span class="pre">8,</span> <span class="pre">[4,</span> <span class="pre">[4,</span> <span class="pre">5,</span> <span class="pre">5]],</span> <span class="pre">[[5,</span> <span class="pre">[]]]]</span></code> as our list, we get</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; 11
+</pre></div>
+</div>
+<p>Uh-oh. We still seem to be adding only the items in the list that are not in nested lists. Can you see what’s wrong in the code?</p>
+<p>Something was lost in translation in the two versions of pseudo-code: <code class="docutils literal notranslate"><span class="pre">total</span></code>. That is, the recursive call <code class="docutils literal notranslate"><span class="pre">sumListRecur(e)</span></code> needs a container in which to dump its result. If you go back to the last section of <a class="reference internal" href="02 Scope, Frame and Stack.html#scope-frame-and-stack"><span class="std std-ref">Scope, Frame and Stack</span></a>, we can only change a variable’s namespace by explicitly binding the new value to the variable. This simple fix does the trick:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">sumListRecur</span><span class="p">(</span><span class="n">L</span><span class="p">):</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">L</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">([]):</span>
+            <span class="n">total</span> <span class="o">+=</span> <span class="n">sumListRecur</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">total</span> <span class="o">+=</span> <span class="n">e</span>
+    <span class="k">return</span> <span class="n">total</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="mi">58</span>
+</pre></div>
+</div>
+<p>Let’s unpack this code now, as it has a few interesting details.</p>
+<p>The first point is the recursive call itself. As we iterate over each <code class="docutils literal notranslate"><span class="pre">e</span></code> item in <code class="docutils literal notranslate"><span class="pre">L</span></code>, when we identify an instance where <code class="docutils literal notranslate"><span class="pre">e</span> <span class="pre">==</span> <span class="pre">type([])</span></code>, we only need to send that specific <code class="docutils literal notranslate"><span class="pre">e</span></code> as an argument for the recursive function. In this way, we have the same function <code class="docutils literal notranslate"><span class="pre">sumListRecur()</span></code> address a smaller version (<code class="docutils literal notranslate"><span class="pre">e</span></code>) of the total problem (<code class="docutils literal notranslate"><span class="pre">L</span></code>) - which is pretty much the point of recursion. Moreover, we do this only when we need to, since if <code class="docutils literal notranslate"><span class="pre">e</span></code> is not a list, it must be an integer, in which case it is added to <code class="docutils literal notranslate"><span class="pre">total</span></code> during the <code class="docutils literal notranslate"><span class="pre">else</span></code> block.</p>
+<p>In the majority of recursive cases seen so far, we have been passing arguments that have either predictably decremented to the base case (eg, <code class="docutils literal notranslate"><span class="pre">summ()</span></code> and <code class="docutils literal notranslate"><span class="pre">factorial()</span></code>), or we have sent ever-smaller slices of a defined string (<code class="docutils literal notranslate"><span class="pre">pal()</span></code>). In the case of <code class="docutils literal notranslate"><span class="pre">pal()</span></code> this process of decrementation is also fundamentally predictable - the maximum number of slices, if the string is in fact a palindrome, is always <code class="docutils literal notranslate"><span class="pre">len(s)</span> <span class="pre">//</span> <span class="pre">2</span></code>. Only <code class="docutils literal notranslate"><span class="pre">gcdRecur()</span></code> is unpredictable in terms of the number of steps it takes to get to the base case, but the recursive call drives the algorithm to the base case regardless.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">sumListRecur()</span></code> plenty of work is being done without recursion. Indeed, this program could compute a flat list without resorting to recursion at all. On the other hand, <em>as long as ``e`` is a list</em>, the recursive call will get triggered. In this way, a deeply nested list, such as <code class="docutils literal notranslate"><span class="pre">[[[5,</span> <span class="pre">[]]]]</span></code> is as easily handled as a flat list.</p>
+<p>If recursion is being deployed on an as-needed basis, that means that we may well hit the base case multiple times in the course of processing a list. This may sound trivial, but so far all of our algorithms have engaged recursion in a fairly linear fashion - a sort of ‘one and done’ approach. It’s valuable to recognize that you can use recursion only when you need it, and as often as you need it, within a single algorithm.</p>
+</div>
+<div class="section" id="computing-values-inside-each-recursive-frame">
+<h2>Computing values inside each recursive frame<a class="headerlink" href="#computing-values-inside-each-recursive-frame" title="Permalink to this headline">¶</a></h2>
+<p>The use of <code class="docutils literal notranslate"><span class="pre">total</span></code> deserves a fuller description. Recall the iterative code with which we started:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">sumListIter</span><span class="p">(</span><span class="n">L</span><span class="p">):</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">L</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">total</span> <span class="o">+=</span> <span class="n">e</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">total</span> <span class="o">+=</span> <span class="n">e</span>
+    <span class="k">return</span> <span class="n">total</span>
+</pre></div>
+</div>
+<p>And compare it with our recursive code:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">sumListRecur</span><span class="p">(</span><span class="n">L</span><span class="p">):</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">L</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">([]):</span>
+            <span class="n">total</span> <span class="o">+=</span> <span class="n">sumListRecur</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">total</span> <span class="o">+=</span> <span class="n">e</span>
+    <span class="k">return</span> <span class="n">total</span>
+</pre></div>
+</div>
+<p>Honestly, except for the issue of depth, there doesn’t seem to be that much of a difference. In both cases, <code class="docutils literal notranslate"><span class="pre">total</span></code> scoops up all the values we need and returns the sum. And in the simplest case, where <code class="docutils literal notranslate"><span class="pre">L</span></code> is a flat list, there’s almost no difference at all - in both versions we use the <code class="docutils literal notranslate"><span class="pre">else</span></code> clause to add integers to <code class="docutils literal notranslate"><span class="pre">total</span></code> until we get the sum we’re after. But in the iterative version, there is only one <code class="docutils literal notranslate"><span class="pre">total</span></code>. Recall that when we are dealing with recursion, what we are really interested in is what happens within the frames, and that means that each frame has its own <code class="docutils literal notranslate"><span class="pre">total</span></code>!</p>
+<p>As we’ve established, every time we recursively invoke <code class="docutils literal notranslate"><span class="pre">sumListRecur(e)</span></code> we create a new frame, to which we pass <code class="docutils literal notranslate"><span class="pre">e</span></code> as the argument. What does the state of function <code class="docutils literal notranslate"><span class="pre">sumListRecur()</span></code> in that frame look like? Exactly like the original <code class="docutils literal notranslate"><span class="pre">sumListRecur()</span></code>, with the difference that <code class="docutils literal notranslate"><span class="pre">e</span></code> is the parameter and not <code class="docutils literal notranslate"><span class="pre">L</span></code>. What this also means, however, is that <code class="docutils literal notranslate"><span class="pre">total</span></code> is set to <code class="docutils literal notranslate"><span class="pre">0</span></code> - after all, that’s what we asked the code to do. So how does this help our computation?</p>
+<p>Think back on the discussion of how each frame in <code class="docutils literal notranslate"><span class="pre">pal()</span></code> held a different value of <code class="docutils literal notranslate"><span class="pre">s</span></code>. If I asked you, What is the value of <code class="docutils literal notranslate"><span class="pre">s</span></code>, you could only ask me to clarify, For which frame? Upon creation, each frame of <code class="docutils literal notranslate"><span class="pre">pal()</span></code> gets seeded with a different <code class="docutils literal notranslate"><span class="pre">s</span></code>. In the same way, the new frame of <code class="docutils literal notranslate"><span class="pre">sumListRecur()</span></code> gets seeded with <code class="docutils literal notranslate"><span class="pre">e</span></code>, but also <code class="docutils literal notranslate"><span class="pre">total</span> <span class="pre">==</span> <span class="pre">0</span></code>. So if <code class="docutils literal notranslate"><span class="pre">total</span></code> is always <code class="docutils literal notranslate"><span class="pre">0</span></code>, how can we add up anything?</p>
+<p>This is where the base case comes in. Let’s say that <code class="docutils literal notranslate"><span class="pre">L</span> <span class="pre">==</span> <span class="pre">[1,</span> <span class="pre">[2,</span> <span class="pre">3]]</span></code>. Since we’re running the function for the first time, this is the state of frame 1. The first run through the <code class="docutils literal notranslate"><span class="pre">for</span> <span class="pre">e</span> <span class="pre">in</span> <span class="pre">L</span></code> loop doesn’t have a recursive call, so at this point <code class="docutils literal notranslate"><span class="pre">total</span> <span class="pre">==</span> <span class="pre">1</span></code>. The next run through the loop triggers the recursive call, sending <code class="docutils literal notranslate"><span class="pre">e</span> <span class="pre">==</span> <span class="pre">[2,</span> <span class="pre">3]</span></code> to frame 2. In frame 2, we skip the <code class="docutils literal notranslate"><span class="pre">if</span></code> clause and iterate over the list, adding each item of <code class="docutils literal notranslate"><span class="pre">e</span></code> to <code class="docutils literal notranslate"><span class="pre">total</span></code>. Now frame 1 has <code class="docutils literal notranslate"><span class="pre">total</span> <span class="pre">==</span> <span class="pre">5</span></code>. Finally, we get to <code class="docutils literal notranslate"><span class="pre">return</span> <span class="pre">total</span></code>, returning <code class="docutils literal notranslate"><span class="pre">5</span></code> to frame 1.</p>
+<p>Where does that <code class="docutils literal notranslate"><span class="pre">5</span></code> wind up? In frame 1, in place of <code class="docutils literal notranslate"><span class="pre">sumListRecur(e)</span></code>. It’s added to the current value of <code class="docutils literal notranslate"><span class="pre">total</span></code>, which is <code class="docutils literal notranslate"><span class="pre">1</span></code>, yielding a sum of <code class="docutils literal notranslate"><span class="pre">6</span></code>. Thanks to the final <code class="docutils literal notranslate"><span class="pre">return</span> <span class="pre">total</span></code> statement in frame 1, this is what is finally returned to the global frame.</p>
+<p>Let’s add our usual print-tracing statements and see what this looks like for a larger <code class="docutils literal notranslate"><span class="pre">L</span></code>:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">depth</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="k">def</span> <span class="nf">sumListRecur</span><span class="p">(</span><span class="n">L</span><span class="p">):</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">global</span> <span class="n">depth</span>
+    <span class="n">depth</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">depth =&#39;</span><span class="p">,</span> <span class="n">depth</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;total =&#39;</span><span class="p">,</span> <span class="n">total</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">L</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  at top of for loop, next e =&#39;</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">([]):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  e =&#39;</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="s1">&#39;is a list so recurse...&#39;</span><span class="p">)</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">sumListRecur</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="n">total</span> <span class="o">+=</span> <span class="n">r</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  total is now =&#39;</span><span class="p">,</span> <span class="n">total</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">total</span> <span class="o">+=</span> <span class="n">e</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  e =&#39;</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="s1">&#39;is int so total =&#39;</span><span class="p">,</span> <span class="n">total</span><span class="p">)</span>
+    <span class="n">depth</span> <span class="o">-=</span> <span class="mi">1</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  returning total =&#39;</span><span class="p">,</span> <span class="n">total</span><span class="p">,</span> <span class="s1">&#39;to depth =&#39;</span><span class="p">,</span> <span class="n">depth</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">depth =&#39;</span><span class="p">,</span> <span class="n">depth</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">total</span>
+
+<span class="n">L</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="mi">6</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;depth =&#39;</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">L =&#39;</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">sumListRecur</span><span class="p">(</span><span class="n">L</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; depth = 0                               #global frame
+&gt;&gt;&gt; L = [1, [2, 3], [4, 5], 6]
+
+&gt;&gt;&gt; depth = 1                               #frame 1
+&gt;&gt;&gt; total = 0
+&gt;&gt;&gt;   at top of for loop, next e = 1
+&gt;&gt;&gt;   e = 1 is int so total = 1                 #total = 1
+&gt;&gt;&gt;   at top of for loop, next e = [2, 3]
+&gt;&gt;&gt;   e = [2, 3] is list so recurse...
+
+&gt;&gt;&gt; depth = 2                               #frame 2
+&gt;&gt;&gt; total = 0
+&gt;&gt;&gt;   at top of for loop, next e = 2
+&gt;&gt;&gt;   e = 2 is int so total = 2
+&gt;&gt;&gt;   at top of for loop, next e = 3
+&gt;&gt;&gt;   e = 3 is int so total = 5
+&gt;&gt;&gt;   returning total = 5 to depth = 1          #total = 5
+
+&gt;&gt;&gt; depth = 1                               #frame 1
+&gt;&gt;&gt;   at top of for loop, next e = [4, 5]
+&gt;&gt;&gt;   e = [4, 5] is list so recurse...
+
+&gt;&gt;&gt; depth = 2                               #frame 3
+&gt;&gt;&gt; total = 0
+&gt;&gt;&gt;   at top of for loop, next e = 4
+&gt;&gt;&gt;   e = 4 is int so total = 4
+&gt;&gt;&gt;   at top of for loop, next e = 5
+&gt;&gt;&gt;   e = 5 is int so total = 9
+&gt;&gt;&gt;   returning total = 9 to depth = 1      #total = 9
+
+&gt;&gt;&gt; depth = 1                               #frame 1
+&gt;&gt;&gt;   at top of for loop, next e = 6
+&gt;&gt;&gt;   e = 6 is int so total = 21
+&gt;&gt;&gt;   returning total = 21 to depth = 0     #total = 21
+
+&gt;&gt;&gt; depth = 0                               #global frame
+&gt;&gt;&gt; 21
+</pre></div>
+</div>
+<p>In order to appreciate the importance of defining <code class="docutils literal notranslate"><span class="pre">total</span></code> as a variable that has <em>local scope only</em>, consider if we removed it from the function definition and just put it in the global frame, where it will be accessible from anywhere:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">sumListRecur</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">total</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">L</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">([]):</span>
+            <span class="n">total</span> <span class="o">+=</span> <span class="n">sumListRecur</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">total</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">total</span> <span class="o">+=</span> <span class="n">e</span>
+    <span class="k">return</span> <span class="n">total</span>
+
+<span class="n">total</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">L</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]]</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">sumListRecur</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">total</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; 29
+</pre></div>
+</div>
+<p>Another important trait of this code concerns frame creation. So far our examples have been rigorously predictable: the entire function’s work is inseparable from recursion. However, <code class="docutils literal notranslate"><span class="pre">sumListRecur()</span></code> only uses recursion when needed, and in some cases not at all. This implies that keeping track of frames is intrinsically different as well. We don’t have a monolithic structure for the function’s overall execution, but rather the type of each item in <code class="docutils literal notranslate"><span class="pre">L</span></code> tells us what to do.</p>
+<p>You may have noticed in the above print-tracing code I didn’t explicitly track frames, preferring instead ‘depth’, or how many recursive calls were needed for each item in <code class="docutils literal notranslate"><span class="pre">L</span></code>. The fact is that depth and frame should really be tracked separately, since depth can be revisited, but frames are unique. For example, if <code class="docutils literal notranslate"><span class="pre">L</span> <span class="pre">=</span> <span class="pre">[1,</span> <span class="pre">[2,</span> <span class="pre">3],</span> <span class="pre">[4,</span> <span class="pre">5],</span> <span class="pre">6]</span></code>, for each item <code class="docutils literal notranslate"><span class="pre">e</span></code> in <code class="docutils literal notranslate"><span class="pre">L</span></code> we get:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>e      depth    frame
+1        1         1
+[2, 3]   2         2
+[4, 5]   2         3
+6        1         1
+</pre></div>
+</div>
+<p>We don’t close frame 1 until we have finished unpacking all sublists (ie, the end of the program). While <code class="docutils literal notranslate"><span class="pre">[2,</span> <span class="pre">3]</span></code> and <code class="docutils literal notranslate"><span class="pre">[4,</span> <span class="pre">5]</span></code> both have an additional level of depth, each frame is unique. We don’t ‘go back’ to frame 2 when we recurse ‘[4, 5]’ but create a new, third frame. This is important because I don’t want you to think that frame 2 still retains a value for <code class="docutils literal notranslate"><span class="pre">total</span></code> when in fact it’s been closed.</p>
+<p>This may seem to be a trivial distinction, but we’ll see that it plays an important role when we encounter functions with multiple recursive calls, and also when we use depth (or ‘order’) to determine drawing the size of the next shape in a fractal, so just keep it in mind for the future.</p>
+</div>
+<div class="section" id="where-s-the-base-case">
+<h2>Where’s the base case?<a class="headerlink" href="#where-s-the-base-case" title="Permalink to this headline">¶</a></h2>
+<p>A final observation on this code: what happened to our base case? Going back to our basic template the base case is clear:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span> <span class="k">def</span> <span class="nf">foo</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+<span class="hll">     <span class="k">if</span> <span class="n">base</span> <span class="n">case</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
+</span><span class="hll">         <span class="k">return</span> <span class="n">base</span> <span class="n">case</span>
+</span>     <span class="k">else</span><span class="p">:</span>
+         <span class="k">return</span> <span class="n">foo</span><span class="p">(</span><span class="c1">#modified n)</span>
+</pre></div>
+</div>
+<p>You could just as easily point out <code class="docutils literal notranslate"><span class="pre">pal()</span></code>’s base case:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span> <span class="k">def</span> <span class="nf">foo</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+<span class="hll">     <span class="k">if</span> <span class="n">base</span> <span class="n">case</span><span class="p">:</span>
+</span><span class="hll">         <span class="k">return</span> <span class="bp">True</span>
+</span>     <span class="k">else</span><span class="p">:</span>
+         <span class="k">if</span> <span class="c1">#some condition:</span>
+             <span class="k">return</span> <span class="n">foo</span><span class="p">(</span><span class="c1">#modified n)</span>
+         <span class="k">else</span><span class="p">:</span>
+             <span class="k">return</span> <span class="bp">False</span>
+</pre></div>
+</div>
+<p>But where is it in <code class="docutils literal notranslate"><span class="pre">sumListRecur()</span></code>?</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">sumListRecur</span><span class="p">(</span><span class="n">L</span><span class="p">):</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">L</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">([]):</span>
+            <span class="n">total</span> <span class="o">+=</span> <span class="n">sumListRecur</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">total</span> <span class="o">+=</span> <span class="n">e</span>
+    <span class="k">return</span> <span class="n">total</span>
+</pre></div>
+</div>
+<p>Quite simply, the base case is reached when the function executes all of its statements without triggering a recursive call. This is an interesting counterpoint to the other examples, where the base case is in the <code class="docutils literal notranslate"><span class="pre">if</span></code> portion of the <code class="docutils literal notranslate"><span class="pre">if/else</span></code> block. So one way to think about <code class="docutils literal notranslate"><span class="pre">sumListRecur()</span></code> and similar functions is its base case is when there is nothing left to execute but the last <code class="docutils literal notranslate"><span class="pre">return</span></code> statement. If this doesn’t seem intuitive at first, it’s OK - we’ll see this come up frequently in more advanced recursive algorithms.</p>
+<p>To help you get more comfortable, here is a variation of <code class="docutils literal notranslate"><span class="pre">sumListRecur()</span></code>, where we aren’t summing a list of lists, but simply flattening <code class="docutils literal notranslate"><span class="pre">L</span></code> into a list without sublists:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">flatten</span><span class="p">(</span><span class="n">L</span><span class="p">):</span>
+    <span class="n">newlist</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">L</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">([]):</span>
+            <span class="n">newlist</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">flatten</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">newlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">newlist</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">flatten</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span><span class="mi">9</span><span class="p">,[</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">13</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span><span class="mi">8</span><span class="p">,[</span><span class="mi">2</span><span class="p">,</span><span class="mi">6</span><span class="p">]]))</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; [2,9,2,1,13,2,8,2,6]
+</pre></div>
+</div>
+<p>Here, instead of <code class="docutils literal notranslate"><span class="pre">total</span></code>, we declare an empty list <code class="docutils literal notranslate"><span class="pre">newList</span></code>, but with exactly the same local scope and functionality. Another neat trick is that the result of the recursive call is the parameter used for the <code class="docutils literal notranslate"><span class="pre">extend()</span></code> list method.</p>
+<p><strong>Question:</strong> To better understand this code, ask yourself why we chose <code class="docutils literal notranslate"><span class="pre">append()</span></code> for one case, and <code class="docutils literal notranslate"><span class="pre">extend()</span></code> for the other?</p>
+</div>
+<div class="section" id="using-recursion-for-directory-listing">
+<h2>Using recursion for directory listing<a class="headerlink" href="#using-recursion-for-directory-listing" title="Permalink to this headline">¶</a></h2>
+<p>Recursing through lists has a very practical application as well. Consider being given the task of deriving a directory’s structure. You have access to the entire directory, but you have no idea how many folders are in it, nor how many subfolders may exist within any given folder. How do you print out the complete directory? This example may be a bit advanced compared to the code presented so far, but it’s worth the effrot.</p>
+<p>Here is some code that leverages Python’s <code class="docutils literal notranslate"><span class="pre">os</span></code> module that prints out the directory listing for the Python folder in my local MacOS drive:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>           <span class="c1"># can also be &#39;import os.path&#39;</span>
+
+<span class="k">def</span> <span class="nf">get_dirlist</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return a sorted list of all entries in path.</span>
+<span class="sd">    This returns just names, not the full path to the names.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dirlist</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">dirlist</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">dirlist</span>
+
+<span class="k">def</span> <span class="nf">print_files</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Print recursive listing of contents of path &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">prefix</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>  <span class="c1"># Detect outermost call, print a heading</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Folder listing for&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;| &quot;</span>
+
+    <span class="n">dirlist</span> <span class="o">=</span> <span class="n">get_dirlist</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">dirlist</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">prefix</span> <span class="o">+</span> <span class="n">f</span><span class="p">)</span>                  <span class="c1"># Print the line</span>
+        <span class="n">fullname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>   <span class="c1"># Turn name into</span>
+                                                 <span class="n">full</span> <span class="n">pathname</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">fullname</span><span class="p">):</span>        <span class="c1"># If a directory,</span>
+                                                 <span class="n">recurse</span><span class="o">.</span>
+            <span class="n">print_files</span><span class="p">(</span><span class="n">fullname</span><span class="p">,</span> <span class="n">prefix</span> <span class="o">+</span> <span class="s2">&quot;| &quot;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">print_files</span><span class="p">(</span><span class="s1">&#39;/Users/polis/py/3.6&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>This follows the template for <code class="docutils literal notranslate"><span class="pre">flatten.py</span></code>, where recursion is triggered when <code class="docutils literal notranslate"><span class="pre">fullname</span></code> is found to be a directory and not a file. I won’t be exhaustive about it, but let’s break this code down a bit further:</p>
+<p>We use a number of methods that we import from the <a class="reference external" href="https://docs.python.org/3.6/library/os.path.html">os</a> module. When we call <code class="docutils literal notranslate"><span class="pre">print_files()</span></code> with a legal pathname, we first generate a header with no pipe. Since pipes are used for all subsequent prints, we immediately set <code class="docutils literal notranslate"><span class="pre">prefix</span> <span class="pre">=</span> <span class="pre">'|'</span></code>.</p>
+<p>Calling <code class="docutils literal notranslate"><span class="pre">dir_list()</span></code> with <code class="docutils literal notranslate"><span class="pre">path</span></code> as its argument creates a new list <code class="docutils literal notranslate"><span class="pre">dirlist</span></code> from the <code class="docutils literal notranslate"><span class="pre">os.listdir()</span></code> module method, sorts it and returns it:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; Folder listing for /Users/polis/py/3.6/euler
+&gt;&gt;&gt; [&#39;14_collatz&#39;, &#39;.DS_Store&#39;, &#39;12_triangle&#39;, &#39;13_largesum&#39;, &#39;euler_diary_2019.txt&#39;]               #unsorted
+&gt;&gt;&gt; [&#39;.DS_Store&#39;, &#39;12_triangle&#39;, &#39;13_largesum&#39;, &#39;14_collatz&#39;, &#39;euler_diary_2019.txt&#39;]               #sorted
+</pre></div>
+</div>
+<p>Note that <code class="docutils literal notranslate"><span class="pre">os.listdir()</span></code> returns a flat, unsorted list. Some of these may be files, others may be directories. If we want to see the directory structure in alphabetical order and not the way it is stored in memory then we have to return the sorted list:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; | 12_triangle
+&gt;&gt;&gt; [&#39;triangle3.py&#39;, &#39;triangle2.py&#39;, &#39;triangle1.py&#39;] #unsorted
+&gt;&gt;&gt; [&#39;triangle1.py&#39;, &#39;triangle2.py&#39;, &#39;triangle3.py&#39;] #sorted
+&gt;&gt;&gt; | | triangle1.py
+&gt;&gt;&gt; | | triangle2.py
+&gt;&gt;&gt; | | triangle3.py
+&gt;&gt;&gt; | | triangle4.py
+</pre></div>
+</div>
+<p>Now we want to print out the items returned from <code class="docutils literal notranslate"><span class="pre">get_dirlist()</span></code>, which have been assigned to <code class="docutils literal notranslate"><span class="pre">dirlist</span></code> in <code class="docutils literal notranslate"><span class="pre">print_files()</span></code>. But if we just print them out as strings we have no way of knowing what is a file and what is a directory.</p>
+<p>To do this, <code class="docutils literal notranslate"><span class="pre">fullname</span> <span class="pre">=</span> <span class="pre">os.path.join(path,</span> <span class="pre">f)</span></code> uses the <code class="docutils literal notranslate"><span class="pre">join()</span></code> method to concatenate the item <code class="docutils literal notranslate"><span class="pre">f</span></code> in <code class="docutils literal notranslate"><span class="pre">dirlist</span></code> with its pathname.</p>
+<p>For example, if…</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>f == collatz6.py
+</pre></div>
+</div>
+<p>…then <code class="docutils literal notranslate"><span class="pre">fullname</span> <span class="pre">=</span> <span class="pre">os.path.join(path,</span> <span class="pre">f)</span></code> returns:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>/Users/polis/py/3.6/euler/14_collatz/collatz6.py
+</pre></div>
+</div>
+<p>But we aren’t printing the entire pathname, so why would we do this? Because <code class="docutils literal notranslate"><span class="pre">f</span></code> may be either a file or a directory. Hence the recursive call:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fullname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">fullname</span><span class="p">):</span>
+    <span class="n">print_files</span><span class="p">(</span><span class="n">fullname</span><span class="p">,</span> <span class="n">prefix</span> <span class="o">+</span> <span class="s2">&quot;| &quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This guarantees that we will print out the entire directory structure, and with each additional pipe showing the correct ‘depth’ of the directory structure.</p>
+</div>
+<div class="section" id="heuristics-and-exercises">
+<h2>Heuristics and Exercises<a class="headerlink" href="#heuristics-and-exercises" title="Permalink to this headline">¶</a></h2>
+<p>From this section, we can derive a number of helpful heuristics:</p>
+<p>♦ Recursion doesn’t have to be the exclusive driver of the algorithm - it can be called on only when needed. But once it’s invoked, the recursive process must complete before the next computation can occur.</p>
+<p>♦ A recursive call can happen anywhere within a function, and not just at the return statement. Binding the returned value of a recursive call to a variable allows us to capture the value and use it for further computation.</p>
+<p>♦ The base case may not be an explicit value (eg, <code class="docutils literal notranslate"><span class="pre">1</span></code>, or <code class="docutils literal notranslate"><span class="pre">True</span></code>), but simply the fact that the recursive case is no longer being called. As long as the program reaches a return statement without hitting a recursive call, the value being returned will reverse the recursive process.</p>
+<p><strong>Exercise:</strong> Given a list of lists that contains only numbers, write a recursive function <code class="docutils literal notranslate"><span class="pre">find_min()</span></code> that returns the smallest integer.</p>
+<p>A good way to approach this problem is to first solve a smaller problem: How would you find - without using the <code class="docutils literal notranslate"><span class="pre">min()</span></code> method - the smallest value in a flat list? Once you’ve done that, consider how <code class="docutils literal notranslate"><span class="pre">total</span></code> functioned in <code class="docutils literal notranslate"><span class="pre">sumListRecur()</span></code>, and how you could integrate it with your approach to finding the minimum value into a recursive context.</p>
+<p><strong>Credit:</strong> Much of this material adapted from Chapter 18.2-3 of the fantastic resource, <a class="reference external" href="http://openbookproject.net/thinkcs/python/english3e/recursion.html">Think Like A Computer Scientist</a></p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Summing a List of Lists</a><ul>
+<li><a class="reference internal" href="#recursion-but-only-when-it-s-needed">Recursion…but only when it’s needed</a></li>
+<li><a class="reference internal" href="#computing-values-inside-each-recursive-frame">Computing values inside each recursive frame</a></li>
+<li><a class="reference internal" href="#where-s-the-base-case">Where’s the base case?</a></li>
+<li><a class="reference internal" href="#using-recursion-for-directory-listing">Using recursion for directory listing</a></li>
+<li><a class="reference internal" href="#heuristics-and-exercises">Heuristics and Exercises</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="06 Palindromes.html"
+                        title="previous chapter">Palindromes and Recursion-as-Evaluation</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/07 Lists of Lists.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="06 Palindromes.html" title="Palindromes and Recursion-as-Evaluation"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Understanding Recursion Using Python 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, panopticonopolis.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
+    </div>
+  </body>
+</html>

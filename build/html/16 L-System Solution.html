@@ -1,0 +1,449 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Solving L-System Recursion &#8212; Understanding Recursion Using Python 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Lindenmayer Systems" href="15 L-System.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="15 L-System.html" title="Lindenmayer Systems"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Understanding Recursion Using Python 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="solving-l-system-recursion">
+<span id="l-system-solution"></span><h1>Solving L-System Recursion<a class="headerlink" href="#solving-l-system-recursion" title="Permalink to this headline">¶</a></h1>
+<p>Here are step-by-step solutions to both the exercises presented at the end of <a class="reference internal" href="15 L-System.html#l-system"><span class="std std-ref">Lindenmayer Systems</span></a>.</p>
+<div class="section" id="recursive-version-of-a-koch-curve-l-system">
+<h2>Recursive version of a Koch curve L-system<a class="headerlink" href="#recursive-version-of-a-koch-curve-l-system" title="Permalink to this headline">¶</a></h2>
+<p><strong>Exercise:</strong> Modify the iterative code for a Koch curve L-system into recursive form. Make sure that your recursion preserves the original start and end points of the order 0 fractal - that is, if we have a Koch curve that begins at <code class="docutils literal notranslate"><span class="pre">(-500,</span> <span class="pre">0)</span></code> and ends at <code class="docutils literal notranslate"><span class="pre">(500,</span> <span class="pre">0)</span></code>, then any order of the Koch curve should do the same.</p>
+<p><strong>Solution:</strong> The first thing to do is to start small. We can simplify the problem by putting aside the whole drawing business and just generating the string using a recursive mechanism. If we can get the right theorem, then we should be able to draw the shape without a problem.</p>
+<p>Let’s go back to Lindenmayer’s original system, where the rules of production state <em>A —&gt; AB</em> and <em>B —&gt; A</em>. Here is our original iterative code:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">lSysGenerate</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">iterations</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">iterations</span><span class="p">):</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">lSysCompute</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;s =&#39;</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">s</span>
+
+<span class="k">def</span> <span class="nf">lSysCompute</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;A&#39;</span><span class="p">:</span> <span class="s1">&#39;AB&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">:</span> <span class="s1">&#39;A&#39;</span><span class="p">}</span>
+    <span class="k">return</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="ow">or</span> <span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">s</span><span class="p">])</span>
+
+<span class="n">axiom</span> <span class="o">=</span> <span class="s1">&#39;A&#39;</span>
+<span class="n">iterations</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">lSysGenerate</span><span class="p">(</span><span class="n">axiom</span><span class="p">,</span> <span class="n">iterations</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; s = AB
+&gt;&gt;&gt; s = ABA
+&gt;&gt;&gt; s = ABAAB
+&gt;&gt;&gt; ABAAB
+</pre></div>
+</div>
+<p>We can approach the problem intuitively and conservatively, by keeping the code that we know works and rewriting the code that no longer applies. If you examine the two functions, <code class="docutils literal notranslate"><span class="pre">lSysGenerate()</span></code> feeds the string <code class="docutils literal notranslate"><span class="pre">s</span></code> to <code class="docutils literal notranslate"><span class="pre">lSysCompute()</span></code> while <code class="docutils literal notranslate"><span class="pre">lSysCompute()</span></code> ‘does the work’. You can already see the similarity to <code class="docutils literal notranslate"><span class="pre">mergeSort()</span></code> and <code class="docutils literal notranslate"><span class="pre">sierpinski()</span></code> where we put the recursive action in one function and fed its outputs to other functions that merged and sorted lists, or drew triangles. So let’s begin by converting <code class="docutils literal notranslate"><span class="pre">lSysGenerate()</span></code> from an iterative to a recursive form.</p>
+<p>To do that, let’s divide the problem into its pre- and post-recursive sections. Pre-recursively, it seems like there’s really no work that needs to be done. We don’t need to seed our frames with anything on the way to the base case. We just want to set up the right number of frames, so that we recurse  the correct number of times and get the correct final theorem.</p>
+<p>This implies that all the work should happen post-recursively. More specifically, this means that the base case returns the seed for all further computations, just as we returned <code class="docutils literal notranslate"><span class="pre">[[]]</span></code> for <code class="docutils literal notranslate"><span class="pre">powerSet()</span></code>. With the base case in hand, every pass through the original code’s <code class="docutils literal notranslate"><span class="pre">for</span></code> loop can be recursively restated as each successive frame’s application of the rules of production to the base case/preceding frame.</p>
+<p>If we’ve done it right, our final returned string will have accumulated all the substitutions needed for the <em>nth</em> order. (I’m taking advantage of the fact that, since the recursion is linear, ‘frame’ and ‘order’ mean pretty much the same thing as ‘iterations’ did in the iterative code. Therefore I’ll substitute ‘order’ for ‘iterations’ from here on out.)</p>
+<p>As for the base case, it’s obviously the axiom itself. In the case of the original L-system, this is <code class="docutils literal notranslate"><span class="pre">A</span></code>, which, along with <code class="docutils literal notranslate"><span class="pre">order</span></code>, we pass to <code class="docutils literal notranslate"><span class="pre">lSysGenerate()</span></code>. So with <code class="docutils literal notranslate"><span class="pre">order</span></code> as our counter, we keep decrementing until we get to the base case of <code class="docutils literal notranslate"><span class="pre">order</span> <span class="pre">==</span> <span class="pre">0</span></code>. Following our standard recursive template, we can assert:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">lSysGenerate</span><span class="p">(</span><span class="n">axiom</span><span class="p">,</span> <span class="n">order</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">axiom</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">lSysGenerate</span><span class="p">(</span><span class="n">axiom</span><span class="p">,</span> <span class="n">order</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="n">order</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">lSysGenerate</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; A
+</pre></div>
+</div>
+<p>Since the function doesn’t have multiple recursive calls, we know that we’re dealing with a fairly simple structure here. Nevertheless, let’s throw in some print-tracing to keep track of frames, along with splitting the recursive call from the <code class="docutils literal notranslate"><span class="pre">return</span></code> statement with <code class="docutils literal notranslate"><span class="pre">r</span></code>:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">frame</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="k">def</span> <span class="nf">lSysGenerate</span><span class="p">(</span><span class="n">axiom</span><span class="p">,</span> <span class="n">order</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">frame</span>
+    <span class="k">if</span> <span class="n">order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">frame</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;base case, frame =&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;returning&#39;</span><span class="p">,</span> <span class="n">axiom</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">axiom</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">frame</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;frame =&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">)</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">lSysGenerate</span><span class="p">(</span><span class="n">axiom</span><span class="p">,</span> <span class="n">order</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">frame</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;frame =&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;r =&#39;</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">r</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">lSysGenerate</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; frame = 1
+&gt;&gt;&gt; frame = 2
+&gt;&gt;&gt; frame = 3
+&gt;&gt;&gt; base case, frame = 4
+&gt;&gt;&gt; returning A
+&gt;&gt;&gt; frame = 3
+&gt;&gt;&gt; r = A
+&gt;&gt;&gt; frame = 2
+&gt;&gt;&gt; r = A
+&gt;&gt;&gt; frame = 1
+&gt;&gt;&gt; r = A
+&gt;&gt;&gt; A
+</pre></div>
+</div>
+<p>We next want the opportunity to apply the rules of production to the string <code class="docutils literal notranslate"><span class="pre">axiom</span></code> that is being passed back to us from the base case. To do this, all we need is to call <code class="docutils literal notranslate"><span class="pre">lSysCompute()</span></code>, and the most concise way to do it is in the return statement itself. (Calling the external function at the <code class="docutils literal notranslate"><span class="pre">return</span></code> statement was exactly what we did when we called the <code class="docutils literal notranslate"><span class="pre">merge()</span></code> function in our <code class="docutils literal notranslate"><span class="pre">mergeSort()</span></code> program.)</p>
+<p>So far we have:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">lSysGenerate</span><span class="p">(</span><span class="n">axiom</span><span class="p">,</span> <span class="n">order</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">axiom</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">lSysCompute</span><span class="p">(</span><span class="n">lSysGenerate</span><span class="p">(</span><span class="n">axiom</span><span class="p">,</span> <span class="n">order</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+
+<span class="k">def</span> <span class="nf">lSysCompute</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;A&#39;</span><span class="p">:</span> <span class="s1">&#39;AB&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">:</span> <span class="s1">&#39;A&#39;</span><span class="p">}</span>
+    <span class="k">return</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="ow">or</span> <span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">s</span><span class="p">])</span>
+
+<span class="n">axiom</span> <span class="o">=</span> <span class="s1">&#39;A&#39;</span>
+<span class="n">order</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">lSysGenerate</span><span class="p">(</span><span class="n">axiom</span><span class="p">,</span> <span class="n">order</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; ABAAB
+</pre></div>
+</div>
+<p>Ok, then. What about drawing? The fact is that we cannot draw the shape until we have the final string in hand, and this doesn’t happen until the recursive has completed. Since the iterative code doesn’t draw anything until the final theorem is generated, there is no change in the reationship between the <code class="docutils literal notranslate"><span class="pre">draw()</span></code> and <code class="docutils literal notranslate"><span class="pre">lSysGenerate()</span></code> functions.</p>
+</div>
+<div class="section" id="implementing-absolute-distance">
+<h2>Implementing absolute distance<a class="headerlink" href="#implementing-absolute-distance" title="Permalink to this headline">¶</a></h2>
+<p>But we are still missing a crucial part of the solution, which is the ability to draw at a scale that preserves the absolute distance described by the 0th order. With <code class="docutils literal notranslate"><span class="pre">koch()</span></code> and <code class="docutils literal notranslate"><span class="pre">sierpinski()</span></code>, we linked the variable tracking the fractal’s order with the length of the line that would be drawn. The higher the order, the shorter the line (or the smaller the shape).</p>
+<p>In the current case, we can’t do anything at the base case except retrieve the axiom, and we can’t draw the complete figure until we’ve exited the recursion. So it looks like we’re asking two separate things of our code: figure out the smallest line length we need, and compute the final iteration of the L-system string. We already know (and pretty much don’t have a choice) about how the latter works. The trick is to figure out where to compute the former, and how to extract it from the recursive mechanism.</p>
+<p>If we want two values from our recursion, it makes sense to include more than just the string in the recursive function’s return statement. This means that we will also have two variables in the base case’s return statement. Since we’ll have to return two values through the recursive cases, we’ll have to be careful about what we’re subjecting to computation. Recall from our expansion of Pascal’s triangle, we went from wanting to pass a single list (ie, the <em>nth</em> layer of the triangle) to a list of lists (ie, all layers of the triangle up to and including the <em>nth</em> layer). The trick is that, while we wanted the entire list of lists, we only wanted to recursively operate on the last returned sublist. We’ll be doing something similar here.</p>
+<p>So far, we’ve got the string-generation part down, and there’s no need to mess with that. To find the smallest line length <code class="docutils literal notranslate"><span class="pre">length</span></code>, we know that for every order, <code class="docutils literal notranslate"><span class="pre">length</span></code> will be recomputed successively as <code class="docutils literal notranslate"><span class="pre">length</span> <span class="pre">/=</span> <span class="pre">3</span></code>  . So it makes sense to conduct the division pre-recursively. Once we get down to the base case, we’ll have the correct minimum value for <code class="docutils literal notranslate"><span class="pre">length</span></code>. Now all we need to do is pass that value of <code class="docutils literal notranslate"><span class="pre">length</span></code> - <em>unchanged</em> - back through the recursive process and hand it to the frame that initially called the recursive function.</p>
+<p>Here’s the final code for <code class="docutils literal notranslate"><span class="pre">lSysGenerate()</span></code>, which I’ll walk through below:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">lSysGenerate</span><span class="p">(</span><span class="n">axiom</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">length</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">axiom</span><span class="p">,</span> <span class="n">length</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">length</span> <span class="o">/=</span> <span class="mi">3</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">lSysGenerate</span><span class="p">(</span><span class="n">axiom</span><span class="p">,</span> <span class="n">order</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">length</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">lSysCompute</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+</pre></div>
+</div>
+<p>We first need to include <code class="docutils literal notranslate"><span class="pre">length</span></code> as an argument when defining (and calling) <code class="docutils literal notranslate"><span class="pre">lSysGenerate()</span></code>. Assuming that <code class="docutils literal notranslate"><span class="pre">order</span> <span class="pre">&gt;</span> <span class="pre">0</span></code>, we skip the <code class="docutils literal notranslate"><span class="pre">if</span></code> block and enter the <code class="docutils literal notranslate"><span class="pre">else</span></code> block. There, we modify the pre-recursive portion of the else block to compute <code class="docutils literal notranslate"><span class="pre">length</span> <span class="pre">/=</span> <span class="pre">3</span></code>. This gets us to the point where we recursively call the function.</p>
+<p>Now, the point of the recursive call is to get us to the base case, with the additional requirement that we bring the successively subdivided variable <code class="docutils literal notranslate"><span class="pre">length</span></code> along with us. Since our function currently has the parameters <code class="docutils literal notranslate"><span class="pre">lSysGenerate(axiom,</span> <span class="pre">order,</span> <span class="pre">length)</span></code>, we decrement <code class="docutils literal notranslate"><span class="pre">order</span> <span class="pre">-</span> <span class="pre">1</span></code> and the latest value of <code class="docutils literal notranslate"><span class="pre">length</span></code> travels with it.</p>
+<p>For the base case <code class="docutils literal notranslate"><span class="pre">order</span> <span class="pre">==</span> <span class="pre">0</span></code>, we don’t need to recompute <code class="docutils literal notranslate"><span class="pre">length</span></code>, but we do need to capture it as part of our return statement. So we’ll recast our return statement as a list, <code class="docutils literal notranslate"><span class="pre">[axiom,</span> <span class="pre">length]</span></code>. In the case of the Koch curve, if we wanted order 2 and had an initial length of 1000, what should be returned is <code class="docutils literal notranslate"><span class="pre">['A',</span> <span class="pre">111]</span></code>.</p>
+<p>But returned as what? Here I’ve been a bit more explicit, as I want to emphasize the fact that we’re passing a list back to the calling frame. As I’ve done throughout this guide, I use the variable name <code class="docutils literal notranslate"><span class="pre">r</span></code> as a simple placeholder, which gives us a more intuitive view of the return statement. Since <code class="docutils literal notranslate"><span class="pre">r</span></code> is a list that consists of the string and the minimum length, we want to apply the rules of production (by calling <code class="docutils literal notranslate"><span class="pre">lSysCompute()</span></code>) to the first index item but leave the second one untouched.</p>
+<p>In the interest of compact code, you could also write:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">return</span> <span class="p">[</span><span class="n">lSysCompute</span><span class="p">(</span><span class="n">lSysGenerate</span><span class="p">(</span><span class="n">axiom</span><span class="p">,</span> <span class="n">order</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">length</span><span class="p">)[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">lSysGenerate</span><span class="p">(</span><span class="n">axiom</span><span class="p">,</span> <span class="n">order</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">length</span><span class="p">)[</span><span class="mi">1</span><span class="p">]]</span>
+</pre></div>
+</div>
+<p>But this is difficult to read, and also implies an additional and unnecessary computation. Be nice to other people, and make your code easy to read.</p>
+<p>The last modification that we need to make is in the arguments of the <code class="docutils literal notranslate"><span class="pre">draw()</span></code> function, since we are now accessing two index items from a list - <code class="docutils literal notranslate"><span class="pre">r[0]</span> <span class="pre">==</span> <span class="pre">theorem</span></code> and <code class="docutils literal notranslate"><span class="pre">r[1]</span> <span class="pre">==</span> <span class="pre">length</span></code>. Here is the complete code:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">string</span>
+<span class="kn">import</span> <span class="nn">turtle</span>
+
+<span class="k">def</span> <span class="nf">lSysGenerate</span><span class="p">(</span><span class="n">axiom</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">length</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">axiom</span><span class="p">,</span> <span class="n">length</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">length</span> <span class="o">//=</span> <span class="mi">3</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">lSysGenerate</span><span class="p">(</span><span class="n">axiom</span><span class="p">,</span> <span class="n">order</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">length</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">lSysCompute</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+
+<span class="k">def</span> <span class="nf">lSysCompute</span><span class="p">(</span><span class="n">theorem</span><span class="p">):</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;A&#39;</span><span class="p">:</span> <span class="s1">&#39;A-A++A-A&#39;</span><span class="p">}</span>
+    <span class="k">return</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="ow">or</span> <span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">lString</span><span class="p">])</span>
+
+<span class="k">def</span> <span class="nf">draw</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">theorem</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">angle</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">theorem</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">string</span><span class="o">.</span><span class="n">ascii_letters</span><span class="p">:</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">fd</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">c</span> <span class="o">==</span> <span class="s1">&#39;-&#39;</span><span class="p">:</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">left</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">c</span> <span class="o">==</span> <span class="s1">&#39;+&#39;</span><span class="p">:</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">right</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">turtle</span><span class="o">.</span><span class="n">Turtle</span><span class="p">()</span>
+    <span class="n">wn</span> <span class="o">=</span> <span class="n">turtle</span><span class="o">.</span><span class="n">Screen</span><span class="p">()</span>
+    <span class="n">wn</span><span class="o">.</span><span class="n">bgcolor</span><span class="p">(</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
+
+    <span class="n">t</span><span class="o">.</span><span class="n">color</span><span class="p">(</span><span class="s1">&#39;orange&#39;</span><span class="p">)</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">pensize</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">penup</span><span class="p">()</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">setpos</span><span class="p">(</span><span class="o">-</span><span class="mi">500</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">pendown</span><span class="p">()</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">speed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">axiom</span> <span class="o">=</span> <span class="s1">&#39;A&#39;</span>
+    <span class="n">length</span> <span class="o">=</span> <span class="mi">1000</span>
+    <span class="n">angle</span> <span class="o">=</span> <span class="mi">60</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="mi">4</span>
+
+    <span class="n">r</span> <span class="o">=</span> <span class="n">lSysGenerate</span><span class="p">(</span><span class="n">axiom</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">length</span><span class="p">)</span>
+    <span class="n">draw</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">angle</span><span class="p">)</span>
+
+    <span class="n">wn</span><span class="o">.</span><span class="n">exitonclick</span><span class="p">()</span>
+
+<span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>You can quickly test this by writing a little <code class="docutils literal notranslate"><span class="pre">for</span></code> loop outside of <code class="docutils literal notranslate"><span class="pre">main()</span></code> that overlaps each order of the curve on top of the last, using a different pen color:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">order</span><span class="p">):</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">turtle</span><span class="o">.</span><span class="n">Turtle</span><span class="p">()</span>
+    <span class="n">wn</span> <span class="o">=</span> <span class="n">turtle</span><span class="o">.</span><span class="n">Screen</span><span class="p">()</span>
+    <span class="n">wn</span><span class="o">.</span><span class="n">bgcolor</span><span class="p">(</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
+
+    <span class="n">colormap</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="s1">&#39;orange&#39;</span><span class="p">,</span> <span class="s1">&#39;yellow&#39;</span><span class="p">,</span> <span class="s1">&#39;green&#39;</span><span class="p">,</span> <span class="s1">&#39;blue&#39;</span><span class="p">,</span> <span class="s1">&#39;violet&#39;</span><span class="p">,</span> <span class="s1">&#39;white&#39;</span><span class="p">]</span>
+
+    <span class="n">t</span><span class="o">.</span><span class="n">color</span><span class="p">(</span><span class="n">colormap</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">pensize</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">penup</span><span class="p">()</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">setpos</span><span class="p">(</span><span class="o">-</span><span class="mi">1250</span><span class="p">,</span> <span class="o">-</span><span class="mi">600</span><span class="p">)</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">pendown</span><span class="p">()</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">speed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">axiom</span> <span class="o">=</span> <span class="s1">&#39;A&#39;</span>
+    <span class="n">length</span> <span class="o">=</span> <span class="mi">1000</span>
+    <span class="n">angle</span> <span class="o">=</span> <span class="mi">60</span>
+
+    <span class="n">r</span> <span class="o">=</span> <span class="n">lSysGenerate</span><span class="p">(</span><span class="n">axiom</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">length</span><span class="p">)</span>
+    <span class="n">draw</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">angle</span><span class="p">)</span>
+
+<span class="n">order</span> <span class="o">=</span> <span class="mi">7</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">order</span><span class="p">):</span>
+    <span class="n">main</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You’ll see that the code applies to any combination of alphabet, axiom and rules of production, although with varying and sometimes surprising results.</p>
+</div>
+<div class="section" id="recursively-finding-a-target-string">
+<h2>Recursively finding a target string<a class="headerlink" href="#recursively-finding-a-target-string" title="Permalink to this headline">¶</a></h2>
+<p><strong>Exercise:</strong> For a given L-system, find if a string <code class="docutils literal notranslate"><span class="pre">target</span></code> exists as part of the system after a certain number of iterations. Write a recursive solution that returns the order where <code class="docutils literal notranslate"><span class="pre">target</span></code> appears, as well as its index position in the string as it exists in that order.</p>
+<p>For example, say that we want to find at what point <code class="docutils literal notranslate"><span class="pre">target</span> <span class="pre">=</span> <span class="pre">'BAABAABA'</span></code> <em>first</em> appears in Lindenmayer’s original system. After running the function the output should print <code class="docutils literal notranslate"><span class="pre">target</span> <span class="pre">BAABAABA</span> <span class="pre">is</span> <span class="pre">at</span> <span class="pre">index</span> <span class="pre">position</span> <span class="pre">6</span> <span class="pre">at</span> <span class="pre">order</span> <span class="pre">7</span></code>. If it doesn’t, output should be <code class="docutils literal notranslate"><span class="pre">target</span> <span class="pre">BAABAABA</span> <span class="pre">not</span> <span class="pre">found</span></code>.</p>
+<p><strong>Solution:</strong> Given the generative nature of L-systems, keep in mind that <code class="docutils literal notranslate"><span class="pre">target</span></code> may show up in one order but, thanks to the next application of the rules of production, be substituted out at the next! By the same token, you have to write your solution so that what’s returned is the first time <code class="docutils literal notranslate"><span class="pre">target</span></code> is found, not the most recent.</p>
+<p>I mention this because recursion tends to favor retrieval of values at two points: at the base case, and at the end of the entire recursive cascade. It’s more difficult to capture values during recursion. One way we did this was with <code class="docutils literal notranslate"><span class="pre">mergeSort()</span></code>, where we called an outside function for input that was then passed into the recursive cascade. We used this same technique for the solution to the first exercise above, where we called <code class="docutils literal notranslate"><span class="pre">lSysCompute()</span></code> at every return statement of <code class="docutils literal notranslate"><span class="pre">lSysGenerate()</span></code>.</p>
+<p>Here is a somewhat different approach, where we don’t have to invoke another function. Instead, we’ll store the values as additional parameters of the recursive function itself. Let’s start with the solution we came up with for the previous exercise. Since we’re only interested in finding a string in the theorem, we can use Lindenmayer’s original system and dispense with a drawing component.</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">lSysGenerate</span> <span class="p">(</span><span class="n">axiom</span><span class="p">,</span> <span class="n">order</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">axiom</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">lSysCompute</span><span class="p">(</span><span class="n">lSysGenerate</span><span class="p">(</span><span class="n">axiom</span><span class="p">,</span> <span class="n">order</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+
+<span class="k">def</span> <span class="nf">lSysCompute</span><span class="p">(</span><span class="n">lString</span><span class="p">):</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;A&#39;</span><span class="p">:</span> <span class="s1">&#39;AB&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">:</span> <span class="s1">&#39;A&#39;</span><span class="p">}</span>
+    <span class="k">return</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="ow">or</span> <span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">lString</span><span class="p">])</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">axiom</span> <span class="o">=</span> <span class="s1">&#39;A&#39;</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="mi">8</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">lSysGenerate</span><span class="p">(</span><span class="n">axiom</span><span class="p">,</span> <span class="n">order</span><span class="p">))</span>
+
+<span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; ABAABABAABAABABAABABAABAABABAABAABABAABABAABAABABAABABA
+</pre></div>
+</div>
+<p>Great. We already know that we have to pass another argument to <code class="docutils literal notranslate"><span class="pre">lSysGenerate()</span></code> - the string that we’re looking for. Let’s call it <code class="docutils literal notranslate"><span class="pre">target</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="hll"> <span class="k">def</span> <span class="nf">lSysGenerate</span> <span class="p">(</span><span class="n">axiom</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+</span>     <span class="k">if</span> <span class="n">order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+         <span class="k">return</span> <span class="n">axiom</span>
+     <span class="k">else</span><span class="p">:</span>
+<span class="hll">         <span class="k">return</span> <span class="n">lSysCompute</span><span class="p">(</span><span class="n">lSysGenerate</span><span class="p">(</span><span class="n">axiom</span><span class="p">,</span> <span class="n">order</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">target</span><span class="p">))</span>
+</span>
+ <span class="k">def</span> <span class="nf">lSysCompute</span><span class="p">(</span><span class="n">lString</span><span class="p">):</span>
+     <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;A&#39;</span><span class="p">:</span> <span class="s1">&#39;AB&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">:</span> <span class="s1">&#39;A&#39;</span><span class="p">}</span>
+     <span class="k">return</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="ow">or</span> <span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">lString</span><span class="p">])</span>
+
+ <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+     <span class="n">axiom</span> <span class="o">=</span> <span class="s1">&#39;A&#39;</span>
+     <span class="n">order</span> <span class="o">=</span> <span class="mi">8</span>
+     <span class="n">target</span> <span class="o">=</span> <span class="s1">&#39;BAABAABA&#39;</span>
+<span class="hll">     <span class="k">print</span><span class="p">(</span><span class="n">lSysGenerate</span><span class="p">(</span><span class="n">axiom</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">target</span><span class="p">))</span>
+</span></pre></div>
+</div>
+<p>We also have to unpack the <code class="docutils literal notranslate"><span class="pre">else</span></code> block in <code class="docutils literal notranslate"><span class="pre">lSysGenerate()</span></code> so that we can test for the presence of <code class="docutils literal notranslate"><span class="pre">target</span></code>. If it’s found, we want to record that, so we’ll need a variable <code class="docutils literal notranslate"><span class="pre">hit</span></code> that we’ll initially set to <code class="docutils literal notranslate"><span class="pre">None</span></code>. This variable is also added as a parameter to the function, so that it’s carried along with everything else.</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">lSysGenerate</span> <span class="p">(</span><span class="n">axiom</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+    <span class="n">hit</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">axiom</span><span class="p">,</span> <span class="n">hit</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">lSysGenerate</span><span class="p">(</span><span class="n">axiom</span><span class="p">,</span> <span class="n">order</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">lSysCompute</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+</pre></div>
+</div>
+<p>At the base case, we return a list, initially <code class="docutils literal notranslate"><span class="pre">['A',</span> <span class="pre">None]</span></code>, so we know that <code class="docutils literal notranslate"><span class="pre">r[0]</span></code> is the string, and, if we find <code class="docutils literal notranslate"><span class="pre">target</span> <span class="pre">in</span> <span class="pre">r[0]</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code>, then the index position gets recorded in the second list item, <code class="docutils literal notranslate"><span class="pre">r[1]</span></code>. But we’re still missing the exact order (or frame, or iteration) at which point this happens. So we’ll add another item to our base case’s returned list, <code class="docutils literal notranslate"><span class="pre">order</span></code>.</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">lSysGenerate</span> <span class="p">(</span><span class="n">axiom</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+    <span class="n">hit</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">axiom</span><span class="p">,</span> <span class="n">hit</span><span class="p">,</span> <span class="n">order</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">lSysGenerate</span><span class="p">(</span><span class="n">axiom</span><span class="p">,</span> <span class="n">order</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+            <span class="n">r</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">order</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">lSysCompute</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
+</pre></div>
+</div>
+<p>I snuck in a <code class="docutils literal notranslate"><span class="pre">print(r)</span></code> statement to see what’s going on here:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; [&#39;A&#39;, None, 0]
+&gt;&gt;&gt; [&#39;AB&#39;, None, 0]
+&gt;&gt;&gt; [&#39;ABA&#39;, None, 0]
+&gt;&gt;&gt; [&#39;ABAAB&#39;, None, 0]
+&gt;&gt;&gt; [&#39;ABAABABA&#39;, None, 0]
+&gt;&gt;&gt; [&#39;ABAABABAABAAB&#39;, None, 0]
+&gt;&gt;&gt; [&#39;ABAABABAABAABABAABABA&#39;, 6, 7]
+&gt;&gt;&gt; [&#39;ABAABABAABAABABAABABAABAABABAABAAB&#39;, 6, 8]
+&gt;&gt;&gt; [&#39;ABAABABAABAABABAABABAABAABABAABAABABAABABAABAABABAABABA&#39;, 6, 8]
+</pre></div>
+</div>
+<p>Hmmm, so we’re getting the correct index position for <code class="docutils literal notranslate"><span class="pre">target</span></code> but the value for <code class="docutils literal notranslate"><span class="pre">order</span></code> isn’t sticking. This is because every frame re-checks to see whether <code class="docutils literal notranslate"><span class="pre">target</span></code> shows up within the namespace of <code class="docutils literal notranslate"><span class="pre">r[0]</span></code> for that frame. We need to be able to set things up so that, once <code class="docutils literal notranslate"><span class="pre">target</span></code> is found, we can stop looking, and preserve both the index position and <code class="docutils literal notranslate"><span class="pre">order</span></code> <em>as they were in that frame</em>. There is no other way, since, unlike a loop, we can’t just <code class="docutils literal notranslate"><span class="pre">break</span></code> out of the recursion.</p>
+<p>To do this, we set up a variable <code class="docutils literal notranslate"><span class="pre">flag</span></code>. Initially set to <code class="docutils literal notranslate"><span class="pre">False</span></code>, once <code class="docutils literal notranslate"><span class="pre">target</span></code> is found, we re-set <code class="docutils literal notranslate"><span class="pre">flag</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code> and integrate it as a condition for the <code class="docutils literal notranslate"><span class="pre">if</span></code> block. Once <code class="docutils literal notranslate"><span class="pre">flag</span> <span class="pre">==</span> <span class="pre">True</span></code> then the loop is never triggered again, even if <code class="docutils literal notranslate"><span class="pre">target</span> <span class="pre">in</span> <span class="pre">r[0]</span></code> continues to be <code class="docutils literal notranslate"><span class="pre">True</span></code> for succeeding frames. Here’s our code so far:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">lSysGenerate</span> <span class="p">(</span><span class="n">axiom</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">flag</span><span class="p">):</span>
+    <span class="n">hit</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">axiom</span><span class="p">,</span> <span class="n">hit</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">flag</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">lSysGenerate</span><span class="p">(</span><span class="n">axiom</span><span class="p">,</span> <span class="n">order</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">flag</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> <span class="n">r</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+            <span class="n">r</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">order</span>
+            <span class="n">r</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">lSysCompute</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="mi">3</span><span class="p">]]</span>
+</pre></div>
+</div>
+<p>This looks pretty good! We are, however, missing one last piece. It’s always important to consider edge cases - what if <code class="docutils literal notranslate"><span class="pre">target</span></code> is part of the axiom itself? As we have written the code so far, we will only return <code class="docutils literal notranslate"><span class="pre">True</span></code> for <code class="docutils literal notranslate"><span class="pre">order</span> <span class="pre">==</span> <span class="pre">1</span></code> even if <code class="docutils literal notranslate"><span class="pre">target</span></code> is present in the 0th order. So we have to add a check at the base case. Here is the final, complete code:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">lSysGenerate</span> <span class="p">(</span><span class="n">axiom</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">flag</span><span class="p">):</span>
+    <span class="n">hit</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="n">order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">axiom</span><span class="p">:</span>
+            <span class="n">hit</span> <span class="o">=</span> <span class="n">axiom</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+            <span class="n">flag</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">axiom</span><span class="p">,</span> <span class="n">hit</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">flag</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">lSysGenerate</span><span class="p">(</span><span class="n">axiom</span><span class="p">,</span> <span class="n">order</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">flag</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> <span class="n">r</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="bp">False</span><span class="p">:</span>
+            <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+            <span class="n">r</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">order</span>
+            <span class="n">r</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">lSysCompute</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="mi">3</span><span class="p">]]</span>
+
+<span class="k">def</span> <span class="nf">lSysCompute</span><span class="p">(</span><span class="n">lString</span><span class="p">):</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;A&#39;</span><span class="p">:</span> <span class="s1">&#39;AB&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">:</span> <span class="s1">&#39;A&#39;</span><span class="p">}</span>
+    <span class="k">return</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="ow">or</span> <span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">lString</span><span class="p">])</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">axiom</span> <span class="o">=</span> <span class="s1">&#39;A&#39;</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="mi">8</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="s1">&#39;BAABAABA&#39;</span>
+    <span class="n">flag</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">lSysGenerate</span><span class="p">(</span><span class="n">axiom</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">flag</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="sb">``</span><span class="n">target</span><span class="sb">``</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="s1">&#39;is at index position&#39;</span><span class="p">,</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;at order&#39;</span><span class="p">,</span> <span class="n">r</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="sb">``</span><span class="n">target</span><span class="sb">``</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="s1">&#39;not found&#39;</span><span class="p">)</span>
+
+<span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; target BAABAABA is at index position 6 at order 7
+</pre></div>
+</div>
+<p>This code may not be as elegant or compact as many of the high-level recursive examples. On the other hand, it shows how you can retrieve values while the recursive cascade is still unfolding. Also, by gradually building up the code, I hope I made it a little less intimidating than if I’d simply introduced the final solution straight away.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Solving L-System Recursion</a><ul>
+<li><a class="reference internal" href="#recursive-version-of-a-koch-curve-l-system">Recursive version of a Koch curve L-system</a></li>
+<li><a class="reference internal" href="#implementing-absolute-distance">Implementing absolute distance</a></li>
+<li><a class="reference internal" href="#recursively-finding-a-target-string">Recursively finding a target string</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="15 L-System.html"
+                        title="previous chapter">Lindenmayer Systems</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/16 L-System Solution.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="15 L-System.html" title="Lindenmayer Systems"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Understanding Recursion Using Python 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, panopticonopolis.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
+    </div>
+  </body>
+</html>
