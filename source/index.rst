@@ -12,9 +12,13 @@ Understanding Recursion Using Python
 Getting Started
 ^^^^^^^^^^^^^^^
 
-This is a guide for beginning and perhaps intermediate programmers for understanding how recursion actually works. It uses Python 3.6 but the universal presence of recursion should make this broadly applicable. The idea is to provide a framework for how to 'think recursively' when confronted with problems that demand (or simply favor) recursive solutions. 
+For a lot of people, learning recursion for the first time pretty much sucks. It doesn't have to be that way.
 
-Sometimes I'll present the code immediately, and proceed to unpack it. Other times, we'll work towards the final recursive solution starting only from first principles. At the end of each section I deduce a few heuristics, and include an exercise or two that will apply the material and push comprehension a bit further. 
+This guide is intended to help beginning (and perhaps even intermediate) programmers learn to think recursively. It's not math-heavy, so there are no proofs, and very little discussion of time/space complexity. But I do take a text-heavy approach, because I think patient explanation is a key ingredient in helping people understand this crucial technique. Although the code is presented in Python, recursion is a fairly universal concept, so the material should be accessible to non-Python developers.
+
+Sometimes I'll present the code immediately and then unpack it. Other times, we'll work towards the final recursive solution, starting only from first principles. At the end of each section I deduce a few heuristics, and include an exercise or two that will apply the material and push comprehension a bit further. 
+
+I hope the end result is a critical framework developers can use to identify, analyze and solve problems that demand (or simply favor) recursive solutions.
 
 .. toctree::
    :maxdepth: 2
