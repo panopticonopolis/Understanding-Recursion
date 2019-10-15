@@ -417,10 +417,14 @@ One way to visualize the triangular numbers is as the number of dots needed to c
 
 .. code-block:: text
 
-    1, 3, 6, 10, 15, 21, 28, 36…
+    0, 1, 3, 6, 10, 15, 21, 28, 36…
 
 You can see that Pascal's triangle has this sequence represented (twice!) as an interior diagonal: the 1st element of row 2, the second element of row 3, the third element of row 4, etc. Conversely, the same sequence can be read from: the last element of row 2, the second-to-last element of row 3, the third-to-last element of row 4, etc.
 
-[either a recursive function to pull out the triangular numbers from the output of ``pascal()``, or by modifying ``pascal()`` itself, not sure yet]
+Modify ``pascal()`` so that it compiles the triangular numbers in a separate list and returns it along with the triangle layers. See if you can add each triangular number as each new layer is generated. Make sure that you include ``0`` at the start of your sequence of triangular numbers. 
 
-Hint: get rid of the pretty formatting and left-justify the triangle to see how the triangular numbers line up.
+Some hints: 
+ - Get rid of the pretty formatting and left-justify the triangle to see how the triangular numbers line up.
+ - If you get stuck using lists, what other data structure might be more effective?
+
+Bonus: What if you are asked to return *only* the triangular numbers at the end of the computation, but everything must still be written as one function? 
