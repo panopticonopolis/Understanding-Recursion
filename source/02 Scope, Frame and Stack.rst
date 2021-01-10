@@ -101,7 +101,7 @@ It stands to reason, then, that global and local variables retain their separate
         print('in foo(), f =', f)
         
     f = 12
-    print(foo(f))
+    foo(f)
     print('in global frame, f =', f)
 
 .. code-block:: text
@@ -129,13 +129,13 @@ You may have already seen functions defined - or 'nested' - within other functio
             f = "I'm local"
             print('in foo2(), f says,', f)
 
-        print(foo2())
+        foo2()
 
 
     f = "I'm global"
 
     print('in global frame, f says,', f)
-    print(foo())
+    foo()
 
 .. code-block:: text
 
@@ -158,12 +158,12 @@ Just as we can reference a global variable from inside a local frame, we can als
             print('in foo2(), g says,', g)
             print('from foo2(), f still says,', f)
 
-        print(foo2())
+        foo2()
 
     f = "I'm global"
 
     print('in global frame, f says,', f)
-    print(foo())
+    foo()
 
 .. code-block:: text
 
@@ -190,8 +190,8 @@ It's important to note in the above example how ``foo2()`` is called. The call d
     f = "I'm global"
 
     print('in global frame, f says,', f)
-    print(foo())
-    print(foo2())
+    foo()
+    foo2()
 
 In order for ``foo2()`` to be accessible, we have to call it from the frame that contains its definition. This makes sense, because what's the difference between asking for ``foo2()`` from the global frame, and asking for the variable ``g`` in ``foo()`` from the same, global frame? None; both ``g`` and ``foo2()`` are locked away inside the scope that can only be accessed by invoking ``foo()``. 
 
